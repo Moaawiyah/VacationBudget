@@ -13,8 +13,8 @@ import {
 } from "@/lib/calculations/expenses";
 import { formatCurrency } from "@/lib/currency/format";
 import { formatDateHeading } from "@/lib/format-date";
-import { CategoryIcon } from "@/components/ui/category-icon";
 import { StatCard } from "@/components/ui/stat-card";
+import { CategoryBarChart } from "@/components/charts/category-bar-chart";
 import { cn } from "@/lib/utils";
 
 export function TripReport({
@@ -89,34 +89,7 @@ export function TripReport({
         />
       )}
 
-      {categoryBreakdown.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <h2 className="text-muted-foreground text-sm font-medium">By category</h2>
-          <div className="flex flex-col gap-2">
-            {categoryBreakdown.map((category) => {
-              return (
-                <div
-                  key={category.categoryId}
-                  className="border-border bg-card flex items-center gap-3 rounded-2xl border p-3"
-                >
-                  <div className="bg-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
-                    <CategoryIcon
-                      icon={category.icon}
-                      className="text-muted-foreground h-4 w-4"
-                    />
-                  </div>
-                  <p className="text-card-foreground flex-1 text-sm font-medium">
-                    {category.name}
-                  </p>
-                  <p className="text-card-foreground text-sm font-semibold">
-                    {formatCurrency(category.amount, trip.base_currency)}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <CategoryBarChart data={categoryBreakdown} currency={trip.base_currency} />
     </div>
   );
 }

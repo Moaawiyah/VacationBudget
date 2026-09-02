@@ -17,6 +17,13 @@
   --primary-foreground: #ffffff;
   --danger: #dc2626;
   --success: #16a34a;
+  /* Chart series identity — deliberately separate from --primary, which is a
+     UI/brand color, not a data-series color. Slots 1-2 of a validated
+     CVD-safe categorical palette (adjacent-pair Delta E 9.1 light / 8.4 dark,
+     both well above the 8 target). */
+  --chart-series-1: #2a78d6;
+  --chart-series-2: #eb6834;
+  --chart-grid: #e1e0d9;
 }
 
 /* System dark mode, unless the user has explicitly chosen light in Settings. */
@@ -33,6 +40,9 @@
     --primary-foreground: #ffffff;
     --danger: #f87171;
     --success: #4ade80;
+    --chart-series-1: #3987e5;
+    --chart-series-2: #d95926;
+    --chart-grid: #2c2c2a;
   }
 }
 
@@ -49,6 +59,9 @@
   --primary-foreground: #ffffff;
   --danger: #f87171;
   --success: #4ade80;
+  --chart-series-1: #3987e5;
+  --chart-series-2: #d95926;
+  --chart-grid: #2c2c2a;
 }
 
 /* Maps CSS variables to Tailwind utilities, e.g. bg-background, text-muted-foreground. */

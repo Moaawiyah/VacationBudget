@@ -54,3 +54,32 @@ export function calculateDailyBudget(
   const divisor = remainingDays > 0 ? remainingDays : 1;
   return remainingBudget / divisor;
 }
+
+/** Days from today until the trip starts. 0 once the trip has started. */
+export function calculateDaysUntilStart(
+  startDate: string,
+  now: Date = new Date(),
+): number {
+  const today = startOfDay(now).getTime();
+  const start = startOfDay(new Date(startDate)).getTime();
+  return Math.max(0, Math.round((start - today) / DAY_MS));
+}
+
+/** Flat per-day allowance for the whole trip — total_budget spread evenly
+ * across every trip day, unlike calculateDailyBudget's day-to-day dynamic
+ * "what's left, divided by what's left" figure. Used for the historical
+ * day-by-day spending list, where each day is compared to the same target. */
+export function calculateFlatDailyTarget(
+  totalBudget: number,
+  totalTripDays: number,
+): number {
+  return totalTripDays > 0 ? totalBudget / totalTripDays : totalBudget;
+}
+
+/** Total spent divided across every trip day — for the post-trip report. */
+export function calculateAverageDailySpend(
+  totalSpent: number,
+  totalTripDays: number,
+): number {
+  return totalTripDays > 0 ? totalSpent / totalTripDays : totalSpent;
+}

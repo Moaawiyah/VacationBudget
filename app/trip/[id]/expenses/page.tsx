@@ -1,30 +1,21 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { getTrip } from "@/lib/data/trips";
 import { getCategories } from "@/lib/data/categories";
-import { toExpenseWithCategory } from "@/types/expense";
+import { getExpensesForTrip } from "@/lib/data/expenses";
 import { ExpenseList } from "@/components/expenses/expense-list";
 import { ExpenseSavedToast } from "@/components/expenses/expense-saved-toast";
 
 export default async function ExpensesPage({ params }: PageProps<"/trip/[id]/expenses">) {
   const { id } = await params;
-  const supabase = await createClient();
 
-  const [trip, categories, { data: rows }] = await Promise.all([
+  const [trip, categories, expenses] = await Promise.all([
     getTrip(id),
     getCategories(),
-    supabase
-      .from("expenses")
-      .select("*, categories(name, icon)")
-      .eq("trip_id", id)
-      .order("expense_date", { ascending: false })
-      .order("created_at", { ascending: false }),
+    getExpensesForTrip(id),
   ]);
 
   if (!trip) notFound();
-
-  const expenses = (rows ?? []).map(toExpenseWithCategory);
 
   return (
     <main className="safe-x flex flex-1 flex-col gap-4 p-6">

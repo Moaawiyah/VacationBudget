@@ -5,6 +5,13 @@ const nextConfig: NextConfig = {
   // lets Railway run `node server.js` instead of needing a full npm install at
   // runtime. See Phase 10 (deployment) for how this gets used.
   output: "standalone",
+  // Dev-server only: lets a phone on the same WiFi network load JS bundles
+  // when testing via the Mac's local IP (e.g. Add to Home Screen testing).
+  // Without this, Next's dev-mode cross-origin protection silently blocks
+  // the bundle, React never hydrates, and forms fall back to a raw HTML GET
+  // submit — which is exactly what happened testing login from the iPhone.
+  // Has no effect on production (Railway serves a real domain, not dev mode).
+  allowedDevOrigins: ["10.0.0.25"],
   experimental: {
     // Detects connectivity loss and automatically retries a blocked
     // navigation or Server Action once the connection returns, instead of

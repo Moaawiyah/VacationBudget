@@ -4,14 +4,22 @@ import { useEffect, useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import { expenseSchema, type ExpenseInput } from "@/lib/validation/expense";
+import {
+  expenseFields,
+  createExpenseSchema,
+  type ExpenseInput,
+} from "@/lib/validation/expense";
+import { CURRENCIES } from "@/lib/currency/constants";
+import { fetchExchangeRate } from "@/lib/currency/exchange-rate";
+import { convertCurrency } from "@/lib/currency/convert";
+import { formatCurrency } from "@/lib/currency/format";
 import type { Category } from "@/types/category";
 import { CategoryPicker } from "@/components/expenses/category-picker";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-type ExpenseFormValues = z.input<typeof expenseSchema>;
+type ExpenseFormValues = z.input<typeof expenseFields>;
 
 const recentCategoryKey = (tripId: string) => `vacation-budget:recent-category:${tripId}`;
 
@@ -47,15 +55,22 @@ export function ExpenseForm({
     control,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<ExpenseFormValues, unknown, ExpenseInput>({
-    resolver: zodResolver(expenseSchema),
+    resolver: zodResolver(createExpenseSchema(baseCurrency)),
     defaultValues: {
       expense_date: todayISO(),
       category_id: "",
+      currency: baseCurrency,
       ...defaultValues,
     },
   });
+
+  const currency = watch("currency");
+  const amount = watch("amount");
+  const exchangeRate = watch("exchange_rate");
+  const isForeignCurrency = currency !== baseCurrency;
 
   useEffect(() => {
     if (!rememberCategory || defaultValues?.category_id) return;
@@ -66,6 +81,26 @@ export function ExpenseForm({
     // Only on mount — this is a one-time default, not a live sync.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Try a live rate whenever the currency changes. fetchExchangeRate()
+  // returns null until a real provider is wired up (see its own comment),
+  // so today this only ever pre-fills the trivial same-currency case — the
+  // user always enters foreign-currency rates manually. That's the whole
+  // point of building it as a hook here: nothing else needs to change later.
+  useEffect(() => {
+    if (!currency) return;
+    if (currency === baseCurrency) {
+      setValue("exchange_rate", undefined);
+      return;
+    }
+    let cancelled = false;
+    fetchExchangeRate(currency, baseCurrency).then((rate) => {
+      if (!cancelled && rate !== null) setValue("exchange_rate", rate);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [currency, baseCurrency, setValue]);
 
   function submit(data: ExpenseInput) {
     setFormError(null);
@@ -78,13 +113,25 @@ export function ExpenseForm({
     });
   }
 
+  const previewAmount =
+    isForeignCurrency && amount && exchangeRate
+      ? convertCurrency(Number(amount), Number(exchangeRate))
+      : null;
+
   return (
     <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-5">
       <div className="flex flex-col items-center gap-1 py-4">
         <div className="flex items-baseline gap-2">
-          <span className="text-muted-foreground text-2xl font-medium">
-            {baseCurrency}
-          </span>
+          <select
+            {...register("currency")}
+            className="text-muted-foreground rounded-lg border-none bg-transparent text-2xl font-medium outline-none"
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.code}
+              </option>
+            ))}
+          </select>
           <input
             type="number"
             inputMode="decimal"
@@ -97,7 +144,30 @@ export function ExpenseForm({
           />
         </div>
         {errors.amount && <p className="text-danger text-sm">{errors.amount.message}</p>}
+        {errors.currency && (
+          <p className="text-danger text-sm">{errors.currency.message}</p>
+        )}
       </div>
+
+      {isForeignCurrency && (
+        <div className="flex flex-col gap-1.5">
+          <Input
+            label={`Exchange rate (1 ${currency} = ? ${baseCurrency})`}
+            type="number"
+            inputMode="decimal"
+            step="0.0001"
+            min="0"
+            placeholder="1.00"
+            error={errors.exchange_rate?.message}
+            {...register("exchange_rate")}
+          />
+          {previewAmount !== null && (
+            <p className="text-muted-foreground text-xs">
+              ≈ {formatCurrency(previewAmount, baseCurrency)}
+            </p>
+          )}
+        </div>
+      )}
 
       <Controller
         name="category_id"

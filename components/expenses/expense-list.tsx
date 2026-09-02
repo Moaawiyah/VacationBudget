@@ -120,9 +120,16 @@ export function ExpenseList({
                         {expense.category.name}
                       </p>
                     </div>
-                    <p className="text-card-foreground shrink-0 text-sm font-semibold">
-                      {formatCurrency(expense.converted_amount, baseCurrency)}
-                    </p>
+                    <div className="shrink-0 text-right">
+                      <p className="text-card-foreground text-sm font-semibold">
+                        {formatCurrency(expense.converted_amount, baseCurrency)}
+                      </p>
+                      {expense.currency !== baseCurrency && (
+                        <p className="text-muted-foreground text-xs">
+                          {formatCurrency(expense.amount, expense.currency)}
+                        </p>
+                      )}
+                    </div>
                   </Link>
                 );
               })}

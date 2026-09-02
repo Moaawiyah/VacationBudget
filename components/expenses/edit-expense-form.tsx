@@ -23,6 +23,9 @@ export function EditExpenseForm({
       categories={categories}
       defaultValues={{
         amount: expense.amount,
+        currency: expense.currency,
+        exchange_rate:
+          expense.currency === baseCurrency ? undefined : expense.exchange_rate,
         category_id: expense.category_id,
         description: expense.description,
         expense_date: expense.expense_date,

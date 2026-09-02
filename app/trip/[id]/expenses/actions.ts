@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
-  expenseSchema,
+  createExpenseSchema,
   categorySchema,
   type ExpenseInput,
 } from "@/lib/validation/expense";
@@ -27,16 +27,8 @@ export async function createExpense(
   tripId: string,
   input: ExpenseInput,
 ): Promise<ActionResult> {
-  const parsed = expenseSchema.safeParse(input);
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid expense." };
-  }
-
   const { supabase, user } = await requireUser();
 
-  // Phase 3: expense currency always matches the trip's base currency, so the
-  // rate is always 1. Phase 6 replaces this with a real currency picker +
-  // manual rate — convertCurrency() itself won't need to change.
   const { data: trip } = await supabase
     .from("trips")
     .select("base_currency")
@@ -48,15 +40,25 @@ export async function createExpense(
     return { error: "Trip not found." };
   }
 
-  const exchangeRate = 1;
+  const parsed = createExpenseSchema(trip.base_currency).safeParse(input);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid expense." };
+  }
+
+  // Same-currency expenses always convert at 1 — never trust a client-sent
+  // rate for that case. converted_amount is never trusted from the client
+  // at all; it's always derived here from the validated amount + rate.
+  const exchangeRate =
+    parsed.data.currency === trip.base_currency ? 1 : (parsed.data.exchange_rate ?? 1);
+
   const { error } = await supabase.from("expenses").insert({
     trip_id: tripId,
     user_id: user.id,
     category_id: parsed.data.category_id,
     amount: parsed.data.amount,
-    currency: trip.base_currency,
-    converted_amount: convertCurrency(parsed.data.amount, exchangeRate),
+    currency: parsed.data.currency,
     exchange_rate: exchangeRate,
+    converted_amount: convertCurrency(parsed.data.amount, exchangeRate),
     description: parsed.data.description,
     expense_date: parsed.data.expense_date,
     merchant: parsed.data.merchant || null,
@@ -78,19 +80,35 @@ export async function updateExpense(
   expenseId: string,
   input: ExpenseInput,
 ): Promise<ActionResult> {
-  const parsed = expenseSchema.safeParse(input);
+  const { supabase, user } = await requireUser();
+
+  const { data: trip } = await supabase
+    .from("trips")
+    .select("base_currency")
+    .eq("id", tripId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!trip) {
+    return { error: "Trip not found." };
+  }
+
+  const parsed = createExpenseSchema(trip.base_currency).safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid expense." };
   }
 
-  const { supabase, user } = await requireUser();
+  const exchangeRate =
+    parsed.data.currency === trip.base_currency ? 1 : (parsed.data.exchange_rate ?? 1);
 
   const { error } = await supabase
     .from("expenses")
     .update({
       category_id: parsed.data.category_id,
       amount: parsed.data.amount,
-      converted_amount: convertCurrency(parsed.data.amount, 1),
+      currency: parsed.data.currency,
+      exchange_rate: exchangeRate,
+      converted_amount: convertCurrency(parsed.data.amount, exchangeRate),
       description: parsed.data.description,
       expense_date: parsed.data.expense_date,
       merchant: parsed.data.merchant || null,

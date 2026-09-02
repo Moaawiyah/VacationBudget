@@ -20,9 +20,8 @@ const STATUS_CLASS: Record<TripStatus, string> = {
   completed: "bg-muted text-muted-foreground",
 };
 
-// `spent` is always 0 until Phase 3 wires up real expenses — the card math
-// (remaining, progress %) is already correct and will just start reflecting
-// real numbers once expenses exist, no changes needed here.
+// `spent` is the trip's total converted_amount across all expenses (summed
+// by the caller — see app/trips/page.tsx).
 export function TripCard({ trip, spent = 0 }: { trip: Trip; spent?: number }) {
   const status = calculateTripStatus(trip.start_date, trip.end_date);
   const remaining = calculateRemainingBudget(trip.total_budget, spent);

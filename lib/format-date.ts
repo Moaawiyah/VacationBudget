@@ -17,3 +17,21 @@ export function formatDateRange(startDate: string, endDate: string): string {
 
   return `${startFormatter.format(start)} – ${endFormatter.format(end)}`;
 }
+
+/** "Today", "Yesterday", or "Tuesday, 6 October" — used as expense-list group headings. */
+export function formatDateHeading(dateStr: string): string {
+  const date = new Date(`${dateStr}T00:00:00`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (date.getTime() === today.getTime()) return "Today";
+  if (date.getTime() === yesterday.getTime()) return "Yesterday";
+
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(date);
+}

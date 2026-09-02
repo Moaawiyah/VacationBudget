@@ -19,6 +19,25 @@ export default async function TripsPage() {
 
   const trips = (rows ?? []).map(toTrip);
 
+  // One extra query for every trip's total spend, instead of one query per
+  // card (which would be an N+1 query as the trip list grows).
+  const tripIds = trips.map((trip) => trip.id);
+  const { data: expenseRows } =
+    tripIds.length > 0
+      ? await supabase
+          .from("expenses")
+          .select("trip_id, converted_amount")
+          .in("trip_id", tripIds)
+      : { data: [] };
+
+  const spentByTrip = new Map<string, number>();
+  for (const row of expenseRows ?? []) {
+    spentByTrip.set(
+      row.trip_id,
+      (spentByTrip.get(row.trip_id) ?? 0) + Number(row.converted_amount),
+    );
+  }
+
   return (
     <main className="safe-top safe-x safe-bottom flex flex-1 flex-col gap-6 p-6">
       <div className="flex items-start justify-between">
@@ -50,7 +69,7 @@ export default async function TripsPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {trips.map((trip) => (
-            <TripCard key={trip.id} trip={trip} />
+            <TripCard key={trip.id} trip={trip} spent={spentByTrip.get(trip.id) ?? 0} />
           ))}
         </div>
       )}

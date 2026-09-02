@@ -13,7 +13,7 @@ import {
 } from "@/lib/calculations/expenses";
 import { formatCurrency } from "@/lib/currency/format";
 import { formatDateHeading } from "@/lib/format-date";
-import { getCategoryIcon } from "@/lib/icons";
+import { CategoryIcon } from "@/components/ui/category-icon";
 import { StatCard } from "@/components/ui/stat-card";
 import { cn } from "@/lib/utils";
 
@@ -94,14 +94,16 @@ export function TripReport({
           <h2 className="text-muted-foreground text-sm font-medium">By category</h2>
           <div className="flex flex-col gap-2">
             {categoryBreakdown.map((category) => {
-              const Icon = getCategoryIcon(category.icon);
               return (
                 <div
                   key={category.categoryId}
                   className="border-border bg-card flex items-center gap-3 rounded-2xl border p-3"
                 >
                   <div className="bg-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
-                    <Icon className="text-muted-foreground h-4 w-4" />
+                    <CategoryIcon
+                      icon={category.icon}
+                      className="text-muted-foreground h-4 w-4"
+                    />
                   </div>
                   <p className="text-card-foreground flex-1 text-sm font-medium">
                     {category.name}

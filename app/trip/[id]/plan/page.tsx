@@ -1,10 +1,71 @@
-// Placeholder — planned vs. actual budgets by category arrive in Phase 5.
-export default function TripPlanPage() {
+import { notFound } from "next/navigation";
+import { getTrip } from "@/lib/data/trips";
+import { getCategories } from "@/lib/data/categories";
+import { getExpensesForTrip } from "@/lib/data/expenses";
+import { getPlannedBudgetsForTrip } from "@/lib/data/planned-budgets";
+import { groupExpensesByCategory } from "@/lib/calculations/expenses";
+import { formatCurrency } from "@/lib/currency/format";
+import { PlanCategoryRow } from "@/components/plan/plan-category-row";
+import { cn } from "@/lib/utils";
+
+export default async function TripPlanPage({ params }: PageProps<"/trip/[id]/plan">) {
+  const { id } = await params;
+  const [trip, categories, expenses, plannedBudgets] = await Promise.all([
+    getTrip(id),
+    getCategories(),
+    getExpensesForTrip(id),
+    getPlannedBudgetsForTrip(id),
+  ]);
+
+  if (!trip) notFound();
+
+  const actualByCategory = new Map(
+    groupExpensesByCategory(expenses).map((c) => [c.categoryId, c.amount]),
+  );
+  const plannedByCategory = new Map(
+    plannedBudgets.map((p) => [p.category_id, p.planned_amount]),
+  );
+
+  const totalPlanned = plannedBudgets.reduce((sum, p) => sum + p.planned_amount, 0);
+  const totalActual = expenses.reduce(
+    (sum, expense) => sum + expense.converted_amount,
+    0,
+  );
+  const isOverTripBudget = totalPlanned > trip.total_budget;
+
   return (
     <main className="safe-x flex flex-1 flex-col gap-4 p-6">
-      <h1 className="text-foreground text-xl font-semibold">Plan</h1>
-      <div className="border-border bg-card text-muted-foreground rounded-3xl border p-6 text-sm">
-        Category budget planning arrives in Phase 5.
+      <div className="border-border bg-card rounded-3xl border p-5">
+        <div className="flex items-baseline justify-between">
+          <p className="text-muted-foreground text-sm">Total planned</p>
+          <p
+            className={cn(
+              "text-lg font-semibold",
+              isOverTripBudget ? "text-danger" : "text-card-foreground",
+            )}
+          >
+            {formatCurrency(totalPlanned, trip.base_currency)}
+          </p>
+        </div>
+        <div className="text-muted-foreground mt-1 flex items-baseline justify-between text-sm">
+          <span>of {formatCurrency(trip.total_budget, trip.base_currency)} budget</span>
+          <span>{formatCurrency(totalActual, trip.base_currency)} actual</span>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {categories.map((category) => (
+          <PlanCategoryRow
+            key={category.id}
+            tripId={id}
+            categoryId={category.id}
+            categoryName={category.name}
+            icon={category.icon}
+            currency={trip.base_currency}
+            plannedAmount={plannedByCategory.get(category.id) ?? 0}
+            actualAmount={actualByCategory.get(category.id) ?? 0}
+          />
+        ))}
       </div>
     </main>
   );

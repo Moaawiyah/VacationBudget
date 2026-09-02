@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { getCategoryIcon } from "@/lib/icons";
+import { CategoryIcon } from "@/components/ui/category-icon";
 import { formatCurrency } from "@/lib/currency/format";
 import { formatDateHeading } from "@/lib/format-date";
 import type { ExpenseWithCategory } from "@/types/expense";
@@ -100,7 +100,6 @@ export function ExpenseList({
             </h2>
             <div className="flex flex-col gap-2">
               {items.map((expense) => {
-                const Icon = getCategoryIcon(expense.category.icon);
                 return (
                   <Link
                     key={expense.id}
@@ -108,7 +107,10 @@ export function ExpenseList({
                     className="border-border bg-card flex items-center gap-3 rounded-2xl border p-3"
                   >
                     <div className="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
-                      <Icon className="text-muted-foreground h-5 w-5" />
+                      <CategoryIcon
+                        icon={expense.category.icon}
+                        className="text-muted-foreground h-5 w-5"
+                      />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-card-foreground truncate text-sm font-medium">

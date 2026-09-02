@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
-import { getCategoryIcon } from "@/lib/icons";
+import { CategoryIcon } from "@/components/ui/category-icon";
 import { createCategory } from "@/app/trip/[id]/expenses/actions";
 import type { Category } from "@/types/category";
 import { cn } from "@/lib/utils";
@@ -44,7 +44,6 @@ export function CategoryPicker({
       <p className="text-muted-foreground text-sm font-medium">Category</p>
       <div className="grid grid-cols-4 gap-2">
         {categories.map((category) => {
-          const Icon = getCategoryIcon(category.icon);
           const selected = category.id === value;
           return (
             <button
@@ -58,7 +57,7 @@ export function CategoryPicker({
                   : "border-border bg-card text-muted-foreground",
               )}
             >
-              <Icon className="h-5 w-5" />
+              <CategoryIcon icon={category.icon} className="h-5 w-5" />
               <span className="w-full truncate text-center">{category.name}</span>
             </button>
           );

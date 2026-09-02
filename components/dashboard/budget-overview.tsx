@@ -8,7 +8,15 @@ import { formatCurrency } from "@/lib/currency/format";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { StatCard } from "@/components/ui/stat-card";
 
-export function BudgetOverview({ trip, totalSpent }: { trip: Trip; totalSpent: number }) {
+export function BudgetOverview({
+  trip,
+  totalSpent,
+  totalPlanned,
+}: {
+  trip: Trip;
+  totalSpent: number;
+  totalPlanned: number;
+}) {
   const remaining = calculateRemainingBudget(trip.total_budget, totalSpent);
   const remainingDays = calculateRemainingDays(trip.end_date);
   const dailySafe = calculateDailyBudget(remaining, remainingDays);
@@ -25,9 +33,6 @@ export function BudgetOverview({ trip, totalSpent }: { trip: Trip; totalSpent: n
           </p>
         </div>
         <ProgressBar value={percentUsed} className="mt-3" />
-        <p className="text-muted-foreground mt-4 text-center text-sm">
-          {remainingDays} {remainingDays === 1 ? "day" : "days"} remaining
-        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -40,6 +45,15 @@ export function BudgetOverview({ trip, totalSpent }: { trip: Trip; totalSpent: n
           label="Remaining"
           value={formatCurrency(remaining, trip.base_currency)}
           tone={isOverBudget ? "danger" : "success"}
+        />
+        <StatCard
+          label="Planned"
+          value={formatCurrency(totalPlanned, trip.base_currency)}
+        />
+        <StatCard
+          label="Remaining days"
+          value={String(remainingDays)}
+          sublabel={remainingDays === 1 ? "day left" : "days left"}
         />
         <StatCard
           label="Safe daily budget"

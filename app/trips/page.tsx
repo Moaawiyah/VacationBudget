@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Plus, Plane } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getDictionary } from "@/lib/i18n/server";
 import { toTrip } from "@/types/trip";
 import { TripCard } from "@/components/trips/trip-card";
 import { LogoutButton } from "@/components/navigation/logout-button";
 
 export default async function TripsPage() {
-  const supabase = await createClient();
+  const [supabase, dict] = await Promise.all([createClient(), getDictionary()]);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -42,7 +43,7 @@ export default async function TripsPage() {
     <main className="safe-top safe-x safe-bottom flex flex-1 flex-col gap-6 p-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-foreground text-2xl font-semibold">Trips</h1>
+          <h1 className="text-foreground text-2xl font-semibold">{dict.trips.title}</h1>
           <p className="text-muted-foreground mt-1 text-sm">{user?.email}</p>
         </div>
         <LogoutButton />
@@ -51,7 +52,7 @@ export default async function TripsPage() {
       <Link href="/trips/new">
         <button className="bg-primary text-primary-foreground flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-base font-medium active:opacity-80">
           <Plus className="h-5 w-5" />
-          New trip
+          {dict.trips.newTrip}
         </button>
       </Link>
 
@@ -61,9 +62,9 @@ export default async function TripsPage() {
             <Plane className="text-muted-foreground h-6 w-6" />
           </div>
           <p className="text-muted-foreground text-sm">
-            No trips yet.
+            {dict.trips.noTripsTitle}
             <br />
-            Create your first vacation budget.
+            {dict.trips.noTripsSubtitle}
           </p>
         </div>
       ) : (

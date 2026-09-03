@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
 import { CategoryIcon } from "@/components/ui/category-icon";
 import { createCategory } from "@/app/trip/[id]/expenses/actions";
+import { translateCategoryName } from "@/lib/i18n/category-names";
+import { useDictionary } from "@/components/i18n/locale-provider";
 import type { Category } from "@/types/category";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +22,7 @@ export function CategoryPicker({
   onChange,
   error,
 }: CategoryPickerProps) {
+  const dict = useDictionary();
   const [categories, setCategories] = useState(initial);
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
@@ -41,7 +44,9 @@ export function CategoryPicker({
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-muted-foreground text-sm font-medium">Category</p>
+      <p className="text-muted-foreground text-sm font-medium">
+        {dict.expenseForm.category}
+      </p>
       <div className="grid grid-cols-4 gap-2">
         {categories.map((category) => {
           const selected = category.id === value;
@@ -58,7 +63,9 @@ export function CategoryPicker({
               )}
             >
               <CategoryIcon icon={category.icon} className="h-5 w-5" />
-              <span className="w-full truncate text-center">{category.name}</span>
+              <span className="w-full truncate text-center">
+                {translateCategoryName(category.name, dict)}
+              </span>
             </button>
           );
         })}
@@ -68,7 +75,7 @@ export function CategoryPicker({
           className="border-border text-muted-foreground flex flex-col items-center gap-1 rounded-2xl border border-dashed p-3 text-xs font-medium"
         >
           <Plus className="h-5 w-5" />
-          <span>New</span>
+          <span>{dict.expenseForm.newCategory}</span>
         </button>
       </div>
       {adding && (
@@ -77,7 +84,7 @@ export function CategoryPicker({
             autoFocus
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            placeholder="Category name"
+            placeholder={dict.expenseForm.categoryNamePlaceholder}
             className="border-border bg-card text-card-foreground focus:border-primary h-10 flex-1 rounded-xl border px-3 text-sm outline-none"
           />
           <button
@@ -86,7 +93,7 @@ export function CategoryPicker({
             disabled={isPending}
             className="bg-primary text-primary-foreground h-10 rounded-xl px-4 text-sm font-medium disabled:opacity-50"
           >
-            Add
+            {dict.expenseForm.addCategory}
           </button>
         </div>
       )}

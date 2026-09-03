@@ -3,6 +3,8 @@ import { getTrip } from "@/lib/data/trips";
 import { getCategories } from "@/lib/data/categories";
 import { getExpensesForTrip } from "@/lib/data/expenses";
 import { getPlannedBudgetsForTrip } from "@/lib/data/planned-budgets";
+import { getDictionary } from "@/lib/i18n/server";
+import { translateCategoryName } from "@/lib/i18n/category-names";
 import { calculateTripStatus } from "@/lib/calculations/trip";
 import {
   groupExpensesByCategory,
@@ -22,11 +24,12 @@ export default async function TripDashboardPage({
   params,
 }: PageProps<"/trip/[id]/dashboard">) {
   const { id } = await params;
-  const [trip, categories, expenses, plannedBudgets] = await Promise.all([
+  const [trip, categories, expenses, plannedBudgets, dict] = await Promise.all([
     getTrip(id),
     getCategories(),
     getExpensesForTrip(id),
     getPlannedBudgetsForTrip(id),
+    getDictionary(),
   ]);
 
   if (!trip) notFound();
@@ -34,6 +37,13 @@ export default async function TripDashboardPage({
   const status = calculateTripStatus(trip.start_date, trip.end_date);
   const totalSpent = expenses.reduce((sum, expense) => sum + expense.converted_amount, 0);
   const totalPlanned = plannedBudgets.reduce((sum, p) => sum + p.planned_amount, 0);
+  const categoryBreakdown = groupExpensesByCategory(expenses).map((c) => ({
+    ...c,
+    name: translateCategoryName(c.name, dict),
+  }));
+  const plannedActual = mergePlannedAndActual(categories, plannedBudgets, expenses).map(
+    (c) => ({ ...c, name: translateCategoryName(c.name, dict) }),
+  );
 
   return (
     <main className="safe-x flex flex-1 flex-col gap-4 p-6">
@@ -47,14 +57,8 @@ export default async function TripDashboardPage({
             totalSpent={totalSpent}
             totalPlanned={totalPlanned}
           />
-          <CategoryBarChart
-            data={groupExpensesByCategory(expenses)}
-            currency={trip.base_currency}
-          />
-          <PlannedActualChart
-            data={mergePlannedAndActual(categories, plannedBudgets, expenses)}
-            currency={trip.base_currency}
-          />
+          <CategoryBarChart data={categoryBreakdown} currency={trip.base_currency} />
+          <PlannedActualChart data={plannedActual} currency={trip.base_currency} />
           <DailyBarChart
             data={groupExpensesByDate(expenses)}
             currency={trip.base_currency}

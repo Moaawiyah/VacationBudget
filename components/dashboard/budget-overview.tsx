@@ -5,10 +5,13 @@ import {
   calculateDailyBudget,
 } from "@/lib/calculations/trip";
 import { formatCurrency } from "@/lib/currency/format";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { LOCALE_BCP47 } from "@/lib/i18n/config";
+import { interpolate } from "@/lib/i18n/interpolate";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { StatCard } from "@/components/ui/stat-card";
 
-export function BudgetOverview({
+export async function BudgetOverview({
   trip,
   totalSpent,
   totalPlanned,
@@ -17,6 +20,9 @@ export function BudgetOverview({
   totalSpent: number;
   totalPlanned: number;
 }) {
+  const [dict, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const bcp47 = LOCALE_BCP47[locale];
+  const d = dict.dashboard;
   const remaining = calculateRemainingBudget(trip.total_budget, totalSpent);
   const remainingDays = calculateRemainingDays(trip.end_date);
   const dailySafe = calculateDailyBudget(remaining, remainingDays);
@@ -27,9 +33,9 @@ export function BudgetOverview({
     <div className="flex flex-col gap-4">
       <div className="border-border bg-card rounded-3xl border p-5">
         <div className="flex items-baseline justify-between">
-          <p className="text-muted-foreground text-sm">Budget used</p>
+          <p className="text-muted-foreground text-sm">{d.budgetUsed}</p>
           <p className="text-muted-foreground text-sm font-medium">
-            {Math.round(percentUsed)}% used
+            {interpolate(d.percentUsed, { n: Math.round(percentUsed) })}
           </p>
         </div>
         <ProgressBar value={percentUsed} className="mt-3" />
@@ -37,27 +43,32 @@ export function BudgetOverview({
 
       <div className="grid grid-cols-2 gap-3">
         <StatCard
-          label="Budget"
-          value={formatCurrency(trip.total_budget, trip.base_currency)}
+          label={d.budget}
+          value={formatCurrency(trip.total_budget, trip.base_currency, bcp47)}
         />
-        <StatCard label="Spent" value={formatCurrency(totalSpent, trip.base_currency)} />
         <StatCard
-          label="Remaining"
-          value={formatCurrency(remaining, trip.base_currency)}
+          label={d.spent}
+          value={formatCurrency(totalSpent, trip.base_currency, bcp47)}
+        />
+        <StatCard
+          label={d.remaining}
+          value={formatCurrency(remaining, trip.base_currency, bcp47)}
           tone={isOverBudget ? "danger" : "success"}
         />
         <StatCard
-          label="Planned"
-          value={formatCurrency(totalPlanned, trip.base_currency)}
+          label={d.planned}
+          value={formatCurrency(totalPlanned, trip.base_currency, bcp47)}
         />
         <StatCard
-          label="Remaining days"
+          label={d.remainingDays}
           value={String(remainingDays)}
-          sublabel={remainingDays === 1 ? "day left" : "days left"}
+          sublabel={remainingDays === 1 ? d.dayLeft : d.daysLeft}
         />
         <StatCard
-          label="Safe daily budget"
-          value={`${formatCurrency(dailySafe, trip.base_currency)}/day`}
+          label={d.safeDailyBudget}
+          value={interpolate(d.perDay, {
+            amount: formatCurrency(dailySafe, trip.base_currency, bcp47),
+          })}
           tone={dailySafe < 0 ? "danger" : "default"}
         />
       </div>

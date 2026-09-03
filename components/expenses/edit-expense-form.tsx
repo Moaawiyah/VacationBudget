@@ -2,6 +2,7 @@
 
 import { updateExpense } from "@/app/trip/[id]/expenses/actions";
 import { ExpenseForm } from "@/components/expenses/expense-form";
+import { useDictionary } from "@/components/i18n/locale-provider";
 import type { Category } from "@/types/category";
 import type { Expense } from "@/types/expense";
 
@@ -16,6 +17,7 @@ export function EditExpenseForm({
   categories: Category[];
   expense: Expense;
 }) {
+  const dict = useDictionary();
   return (
     <ExpenseForm
       tripId={tripId}
@@ -34,7 +36,7 @@ export function EditExpenseForm({
         notes: expense.notes ?? "",
       }}
       onSubmit={(data) => updateExpense(tripId, expense.id, data)}
-      submitLabel="Save changes"
+      submitLabel={dict.expenseForm.saveChanges}
     />
   );
 }

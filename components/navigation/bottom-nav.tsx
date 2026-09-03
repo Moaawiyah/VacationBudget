@@ -4,16 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Receipt, Plus, ClipboardList, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDictionary } from "@/components/i18n/locale-provider";
 
 export function BottomNav({ tripId }: { tripId: string }) {
+  const dict = useDictionary();
   const pathname = usePathname();
   const base = `/trip/${tripId}`;
 
   const tabs = [
-    { href: `${base}/dashboard`, label: "Dashboard", icon: LayoutDashboard },
-    { href: `${base}/expenses`, label: "Expenses", icon: Receipt },
-    { href: `${base}/plan`, label: "Plan", icon: ClipboardList },
-    { href: `${base}/settings`, label: "Settings", icon: Settings },
+    { href: `${base}/dashboard`, label: dict.nav.dashboard, icon: LayoutDashboard },
+    { href: `${base}/expenses`, label: dict.nav.expenses, icon: Receipt },
+    { href: `${base}/plan`, label: dict.nav.plan, icon: ClipboardList },
+    { href: `${base}/settings`, label: dict.nav.settings, icon: Settings },
   ];
 
   return (

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getDictionary } from "@/lib/i18n/server";
 import { Button } from "@/components/ui/button";
 
 export default async function Home() {
-  const supabase = await createClient();
+  const [supabase, dict] = await Promise.all([createClient(), getDictionary()]);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -20,17 +21,15 @@ export default async function Home() {
           ✈️
         </div>
         <h1 className="text-card-foreground text-xl font-semibold">Vacation Budget</h1>
-        <p className="text-muted-foreground mt-2 text-sm">
-          Plan and track your vacation spending across cities and currencies.
-        </p>
+        <p className="text-muted-foreground mt-2 text-sm">{dict.landing.tagline}</p>
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-3">
         <Link href="/register">
-          <Button>Get started</Button>
+          <Button>{dict.landing.getStarted}</Button>
         </Link>
         <Link href="/login">
-          <Button variant="secondary">Log in</Button>
+          <Button variant="secondary">{dict.landing.logIn}</Button>
         </Link>
       </div>
     </main>

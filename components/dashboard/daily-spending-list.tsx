@@ -4,15 +4,21 @@ import { calculateTripDays, calculateFlatDailyTarget } from "@/lib/calculations/
 import { groupExpensesByDate } from "@/lib/calculations/expenses";
 import { formatCurrency } from "@/lib/currency/format";
 import { formatDateHeading } from "@/lib/format-date";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { LOCALE_BCP47 } from "@/lib/i18n/config";
+import { interpolate } from "@/lib/i18n/interpolate";
 import { cn } from "@/lib/utils";
 
-export function DailySpendingList({
+export async function DailySpendingList({
   trip,
   expenses,
 }: {
   trip: Trip;
   expenses: ExpenseWithCategory[];
 }) {
+  const [dict, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const bcp47 = LOCALE_BCP47[locale];
+  const d = dict.dashboard;
   const totalTripDays = calculateTripDays(trip.start_date, trip.end_date);
   const target = calculateFlatDailyTarget(trip.total_budget, totalTripDays);
   // Most recent first, newest days matter most while the trip is in progress.
@@ -22,7 +28,7 @@ export function DailySpendingList({
 
   return (
     <div className="flex flex-col gap-2">
-      <h2 className="text-muted-foreground text-sm font-medium">Daily spending</h2>
+      <h2 className="text-muted-foreground text-sm font-medium">{d.dailySpending}</h2>
       <div className="flex flex-col gap-2">
         {days.map((day) => {
           const diff = target - day.amount;
@@ -34,11 +40,18 @@ export function DailySpendingList({
             >
               <div>
                 <p className="text-card-foreground text-sm font-medium">
-                  {formatDateHeading(day.date)}
+                  {formatDateHeading(
+                    day.date,
+                    bcp47,
+                    dict.expenses.today,
+                    dict.expenses.yesterday,
+                  )}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  Spent {formatCurrency(day.amount, trip.base_currency)} · Target{" "}
-                  {formatCurrency(target, trip.base_currency)}
+                  {interpolate(d.spentTarget, {
+                    spent: formatCurrency(day.amount, trip.base_currency, bcp47),
+                    target: formatCurrency(target, trip.base_currency, bcp47),
+                  })}
                 </p>
               </div>
               <p
@@ -47,8 +60,8 @@ export function DailySpendingList({
                   isOver ? "text-danger" : "text-success",
                 )}
               >
-                {formatCurrency(Math.abs(diff), trip.base_currency)}{" "}
-                {isOver ? "over" : "under"}
+                {formatCurrency(Math.abs(diff), trip.base_currency, bcp47)}{" "}
+                {isOver ? d.over : d.under}
               </p>
             </div>
           );

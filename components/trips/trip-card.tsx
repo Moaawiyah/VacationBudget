@@ -4,15 +4,11 @@ import type { Trip, TripStatus } from "@/types/trip";
 import { calculateTripStatus, calculateRemainingBudget } from "@/lib/calculations/trip";
 import { formatCurrency } from "@/lib/currency/format";
 import { formatDateRange } from "@/lib/format-date";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { LOCALE_BCP47 } from "@/lib/i18n/config";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { DeleteTripButton } from "@/components/trips/delete-trip-button";
 import { cn } from "@/lib/utils";
-
-const STATUS_LABEL: Record<TripStatus, string> = {
-  upcoming: "Upcoming",
-  active: "Active",
-  completed: "Completed",
-};
 
 const STATUS_CLASS: Record<TripStatus, string> = {
   upcoming: "bg-muted text-muted-foreground",
@@ -22,10 +18,17 @@ const STATUS_CLASS: Record<TripStatus, string> = {
 
 // `spent` is the trip's total converted_amount across all expenses (summed
 // by the caller — see app/trips/page.tsx).
-export function TripCard({ trip, spent = 0 }: { trip: Trip; spent?: number }) {
+export async function TripCard({ trip, spent = 0 }: { trip: Trip; spent?: number }) {
+  const [dict, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const bcp47 = LOCALE_BCP47[locale];
   const status = calculateTripStatus(trip.start_date, trip.end_date);
   const remaining = calculateRemainingBudget(trip.total_budget, spent);
   const progress = trip.total_budget > 0 ? (spent / trip.total_budget) * 100 : 0;
+  const statusLabel: Record<TripStatus, string> = {
+    upcoming: dict.trips.statusUpcoming,
+    active: dict.trips.statusActive,
+    completed: dict.trips.statusCompleted,
+  };
 
   return (
     <div className="border-border bg-card rounded-3xl border p-5 shadow-sm">
@@ -38,7 +41,7 @@ export function TripCard({ trip, spent = 0 }: { trip: Trip; spent?: number }) {
               STATUS_CLASS[status],
             )}
           >
-            {STATUS_LABEL[status]}
+            {statusLabel[status]}
           </span>
         </div>
 
@@ -49,22 +52,23 @@ export function TripCard({ trip, spent = 0 }: { trip: Trip; spent?: number }) {
           </div>
           <div className="flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5 shrink-0" />
-            <span>{formatDateRange(trip.start_date, trip.end_date)}</span>
+            <span>{formatDateRange(trip.start_date, trip.end_date, bcp47)}</span>
           </div>
         </div>
 
         <div className="mt-4">
           <div className="flex items-baseline justify-between text-sm">
             <span className="text-card-foreground">
-              {formatCurrency(spent, trip.base_currency)} spent
+              {formatCurrency(spent, trip.base_currency, bcp47)} {dict.trips.spent}
             </span>
             <span className="text-muted-foreground">
-              {formatCurrency(trip.total_budget, trip.base_currency)} budget
+              {formatCurrency(trip.total_budget, trip.base_currency, bcp47)}{" "}
+              {dict.trips.budget}
             </span>
           </div>
           <ProgressBar value={progress} className="mt-2" />
           <p className="text-muted-foreground mt-1.5 text-xs">
-            {formatCurrency(remaining, trip.base_currency)} remaining
+            {formatCurrency(remaining, trip.base_currency, bcp47)} {dict.trips.remaining}
           </p>
         </div>
       </Link>
@@ -75,7 +79,7 @@ export function TripCard({ trip, spent = 0 }: { trip: Trip; spent?: number }) {
           className="text-muted-foreground flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm font-medium transition-opacity active:opacity-60"
         >
           <Pencil className="h-4 w-4" />
-          Edit
+          {dict.common.edit}
         </Link>
         <DeleteTripButton tripId={trip.id} tripName={trip.name} />
       </div>

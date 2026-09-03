@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCurrency } from "@/lib/currency/format";
+import { useLocale } from "@/components/i18n/locale-provider";
 
 type ChartTooltipPayloadEntry = {
   name?: string;
@@ -24,6 +25,8 @@ export function ChartTooltip({
   label?: string;
   currency: string;
 }) {
+  const { bcp47 } = useLocale();
+
   if (!active || !payload || payload.length === 0) return null;
 
   return (
@@ -37,8 +40,8 @@ export function ChartTooltip({
               style={{ backgroundColor: entry.color }}
             />
             <span className="text-muted-foreground">{entry.name}</span>
-            <span className="text-card-foreground ml-auto pl-3 font-semibold">
-              {formatCurrency(Number(entry.value ?? 0), currency)}
+            <span className="text-card-foreground ms-auto ps-3 font-semibold">
+              {formatCurrency(Number(entry.value ?? 0), currency, bcp47)}
             </span>
           </div>
         ))}

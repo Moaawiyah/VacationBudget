@@ -1,19 +1,27 @@
 import { z } from "zod";
 import { CURRENCY_CODES } from "@/lib/currency/constants";
+import type { Dictionary } from "@/lib/i18n/types";
 
-export const tripSchema = z
-  .object({
-    name: z.string().trim().min(1, "Trip name is required").max(100),
-    description: z.string().trim().max(500).optional().or(z.literal("")),
-    destination: z.string().trim().min(1, "Destination is required").max(200),
-    start_date: z.string().min(1, "Start date is required"),
-    end_date: z.string().min(1, "End date is required"),
-    base_currency: z.enum(CURRENCY_CODES, { message: "Choose a currency" }),
-    total_budget: z.coerce.number().min(0, "Budget can't be negative"),
-  })
-  .refine((data) => data.end_date >= data.start_date, {
-    message: "End date must be on or after the start date",
-    path: ["end_date"],
-  });
+export function tripSchema(t: Dictionary["validation"]) {
+  return z
+    .object({
+      name: z.string().trim().min(1, t.tripNameRequired).max(100),
+      description: z
+        .string()
+        .trim()
+        .max(500, t.descriptionMax500)
+        .optional()
+        .or(z.literal("")),
+      destination: z.string().trim().min(1, t.destinationRequired).max(200),
+      start_date: z.string().min(1, t.startDateRequired),
+      end_date: z.string().min(1, t.endDateRequired),
+      base_currency: z.enum(CURRENCY_CODES, { message: t.currencyChoose }),
+      total_budget: z.coerce.number().min(0, t.budgetNegative),
+    })
+    .refine((data) => data.end_date >= data.start_date, {
+      message: t.endDateBeforeStart,
+      path: ["end_date"],
+    });
+}
 
-export type TripInput = z.infer<typeof tripSchema>;
+export type TripInput = z.infer<ReturnType<typeof tripSchema>>;

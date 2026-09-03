@@ -19,7 +19,7 @@ export default async function TripLayout({
     <div className="flex flex-1 flex-col">
       <header className="safe-top safe-x border-border bg-background sticky top-0 z-10 flex items-center gap-3 border-b px-4 py-3">
         <Link href="/trips" className="text-muted-foreground shrink-0">
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 rtl:-scale-x-100" />
         </Link>
         <div className="min-w-0">
           <p className="text-foreground truncate font-semibold">{trip.name}</p>

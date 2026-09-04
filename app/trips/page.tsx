@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Plane } from "lucide-react";
+import { Plus, Plane, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getDictionary } from "@/lib/i18n/server";
 import { toTrip } from "@/types/trip";
@@ -46,7 +46,16 @@ export default async function TripsPage() {
           <h1 className="text-foreground text-2xl font-semibold">{dict.trips.title}</h1>
           <p className="text-muted-foreground mt-1 text-sm">{user?.email}</p>
         </div>
-        <LogoutButton />
+        <div className="flex items-center gap-2">
+          <Link
+            href="/settings"
+            aria-label={dict.nav.settings}
+            className="text-muted-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-xl active:opacity-60"
+          >
+            <Settings className="h-5 w-5" />
+          </Link>
+          <LogoutButton />
+        </div>
       </div>
 
       <Link href="/trips/new">

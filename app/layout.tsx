@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { OfflineBanner } from "@/components/pwa/offline-banner";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
+import { LocaleProvider } from "@/components/i18n/locale-provider";
+import { getLocale, getDictionary } from "@/lib/i18n/server";
+import { LOCALE_BCP47, dirFor } from "@/lib/i18n/config";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -40,16 +43,22 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocale();
+  const dict = await getDictionary();
+
   return (
     <html
-      lang="en"
+      lang={LOCALE_BCP47[locale]}
+      dir={dirFor(locale)}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-dvh flex-col font-sans">
-        <OfflineBanner />
-        <InstallPrompt />
-        {children}
+        <LocaleProvider locale={locale} dict={dict}>
+          <OfflineBanner />
+          <InstallPrompt />
+          {children}
+        </LocaleProvider>
       </body>
     </html>
   );

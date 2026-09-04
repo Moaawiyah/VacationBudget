@@ -13,13 +13,15 @@ import { CURRENCIES } from "@/lib/currency/constants";
 import { fetchExchangeRate } from "@/lib/currency/exchange-rate";
 import { convertCurrency } from "@/lib/currency/convert";
 import { formatCurrency } from "@/lib/currency/format";
+import { useDictionary, useLocale } from "@/components/i18n/locale-provider";
+import { interpolate } from "@/lib/i18n/interpolate";
 import type { Category } from "@/types/category";
 import { CategoryPicker } from "@/components/expenses/category-picker";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-type ExpenseFormValues = z.input<typeof expenseFields>;
+type ExpenseFormValues = z.input<ReturnType<typeof expenseFields>>;
 
 const recentCategoryKey = (tripId: string) => `vacation-budget:recent-category:${tripId}`;
 
@@ -47,6 +49,8 @@ export function ExpenseForm({
   submitLabel,
   rememberCategory = false,
 }: ExpenseFormProps) {
+  const dict = useDictionary();
+  const { bcp47 } = useLocale();
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -58,7 +62,7 @@ export function ExpenseForm({
     watch,
     formState: { errors },
   } = useForm<ExpenseFormValues, unknown, ExpenseInput>({
-    resolver: zodResolver(createExpenseSchema(baseCurrency)),
+    resolver: zodResolver(createExpenseSchema(baseCurrency, dict.validation)),
     defaultValues: {
       expense_date: todayISO(),
       category_id: "",
@@ -117,6 +121,7 @@ export function ExpenseForm({
     isForeignCurrency && amount && exchangeRate
       ? convertCurrency(Number(amount), Number(exchangeRate))
       : null;
+  const t = dict.expenseForm;
 
   return (
     <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-5">
@@ -152,7 +157,7 @@ export function ExpenseForm({
       {isForeignCurrency && (
         <div className="flex flex-col gap-1.5">
           <Input
-            label={`Exchange rate (1 ${currency} = ? ${baseCurrency})`}
+            label={interpolate(t.exchangeRateLabel, { currency, base: baseCurrency })}
             type="number"
             inputMode="decimal"
             step="0.0001"
@@ -163,7 +168,7 @@ export function ExpenseForm({
           />
           {previewAmount !== null && (
             <p className="text-muted-foreground text-xs">
-              ≈ {formatCurrency(previewAmount, baseCurrency)}
+              ≈ {formatCurrency(previewAmount, baseCurrency, bcp47)}
             </p>
           )}
         </div>
@@ -183,29 +188,29 @@ export function ExpenseForm({
       />
 
       <Input
-        label="Description"
-        placeholder="Dinner, hotel, taxi…"
+        label={t.description}
+        placeholder={t.descriptionPlaceholder}
         error={errors.description?.message}
         {...register("description")}
       />
       <Input
-        label="Date"
+        label={t.date}
         type="date"
         error={errors.expense_date?.message}
         {...register("expense_date")}
       />
       <Input
-        label="Merchant (optional)"
+        label={t.merchantOptional}
         error={errors.merchant?.message}
         {...register("merchant")}
       />
       <Input
-        label="Location (optional)"
+        label={t.locationOptional}
         error={errors.location?.message}
         {...register("location")}
       />
       <Textarea
-        label="Notes (optional)"
+        label={t.notesOptional}
         error={errors.notes?.message}
         {...register("notes")}
       />

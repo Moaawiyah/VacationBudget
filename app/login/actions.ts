@@ -2,12 +2,14 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getDictionary } from "@/lib/i18n/server";
 import { loginSchema, type LoginInput } from "@/lib/validation/auth";
 
 export async function login(input: LoginInput): Promise<{ error: string } | never> {
-  const parsed = loginSchema.safeParse(input);
+  const dict = await getDictionary();
+  const parsed = loginSchema(dict.validation).safeParse(input);
   if (!parsed.success) {
-    return { error: "Enter a valid email and password." };
+    return { error: dict.validation.loginInvalid };
   }
 
   const supabase = await createClient();

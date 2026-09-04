@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { formatCurrency } from "@/lib/currency/format";
 import { upsertPlannedBudget } from "@/app/trip/[id]/plan/actions";
 import { CategoryIcon } from "@/components/ui/category-icon";
+import { useDictionary, useLocale } from "@/components/i18n/locale-provider";
+import { interpolate } from "@/lib/i18n/interpolate";
 import { cn } from "@/lib/utils";
 
 type PlanCategoryRowProps = {
@@ -25,6 +27,8 @@ export function PlanCategoryRow({
   plannedAmount,
   actualAmount,
 }: PlanCategoryRowProps) {
+  const dict = useDictionary();
+  const { bcp47 } = useLocale();
   const [value, setValue] = useState(plannedAmount > 0 ? String(plannedAmount) : "");
   const [isPending, startTransition] = useTransition();
 
@@ -62,17 +66,25 @@ export function PlanCategoryRow({
             onBlur={handleBlur}
             disabled={isPending}
             placeholder="0"
-            className="border-border bg-background text-foreground focus:border-primary w-20 rounded-lg border px-2 py-1 text-right text-sm outline-none disabled:opacity-50"
+            className="border-border bg-background text-foreground focus:border-primary w-20 rounded-lg border px-2 py-1 text-end text-sm outline-none disabled:opacity-50"
           />
         </div>
       </div>
       {showBreakdown && (
-        <div className="text-muted-foreground mt-2 flex items-center justify-between pl-12 text-xs">
-          <span>Actual {formatCurrency(actualAmount, currency)}</span>
+        <div className="text-muted-foreground mt-2 flex items-center justify-between ps-12 text-xs">
+          <span>
+            {interpolate(dict.plan.actualLabel, {
+              amount: formatCurrency(actualAmount, currency, bcp47),
+            })}
+          </span>
           <span className={cn("font-medium", isOver ? "text-danger" : "text-success")}>
             {isOver
-              ? `${formatCurrency(Math.abs(remaining), currency)} over`
-              : `${formatCurrency(remaining, currency)} left`}
+              ? interpolate(dict.plan.over, {
+                  amount: formatCurrency(Math.abs(remaining), currency, bcp47),
+                })
+              : interpolate(dict.plan.left, {
+                  amount: formatCurrency(remaining, currency, bcp47),
+                })}
           </span>
         </div>
       )}

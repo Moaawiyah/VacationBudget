@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth";
+import { getDictionary } from "@/lib/i18n/server";
 import {
   createExpenseSchema,
   categorySchema,
@@ -14,20 +15,12 @@ import type { Category } from "@/types/category";
 
 type ActionResult = { error: string } | never;
 
-async function requireUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  return { supabase, user };
-}
-
 export async function createExpense(
   tripId: string,
   input: ExpenseInput,
 ): Promise<ActionResult> {
   const { supabase, user } = await requireUser();
+  const dict = await getDictionary();
 
   const { data: trip } = await supabase
     .from("trips")
@@ -37,19 +30,23 @@ export async function createExpense(
     .single();
 
   if (!trip) {
-    return { error: "Trip not found." };
+    return { error: dict.trips.tripNotFound };
   }
 
-  const parsed = createExpenseSchema(trip.base_currency).safeParse(input);
+  const parsed = createExpenseSchema(trip.base_currency, dict.validation).safeParse(
+    input,
+  );
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid expense." };
+    return { error: parsed.error.issues[0]?.message ?? dict.validation.expenseInvalid };
   }
 
   // Same-currency expenses always convert at 1 — never trust a client-sent
   // rate for that case. converted_amount is never trusted from the client
   // at all; it's always derived here from the validated amount + rate.
+  // (exchange_rate is guaranteed present by createExpenseSchema's refine
+  // whenever currency !== base_currency, so no further fallback is needed.)
   const exchangeRate =
-    parsed.data.currency === trip.base_currency ? 1 : (parsed.data.exchange_rate ?? 1);
+    parsed.data.currency === trip.base_currency ? 1 : parsed.data.exchange_rate!;
 
   const { error } = await supabase.from("expenses").insert({
     trip_id: tripId,
@@ -81,6 +78,7 @@ export async function updateExpense(
   input: ExpenseInput,
 ): Promise<ActionResult> {
   const { supabase, user } = await requireUser();
+  const dict = await getDictionary();
 
   const { data: trip } = await supabase
     .from("trips")
@@ -90,16 +88,18 @@ export async function updateExpense(
     .single();
 
   if (!trip) {
-    return { error: "Trip not found." };
+    return { error: dict.trips.tripNotFound };
   }
 
-  const parsed = createExpenseSchema(trip.base_currency).safeParse(input);
+  const parsed = createExpenseSchema(trip.base_currency, dict.validation).safeParse(
+    input,
+  );
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid expense." };
+    return { error: parsed.error.issues[0]?.message ?? dict.validation.expenseInvalid };
   }
 
   const exchangeRate =
-    parsed.data.currency === trip.base_currency ? 1 : (parsed.data.exchange_rate ?? 1);
+    parsed.data.currency === trip.base_currency ? 1 : parsed.data.exchange_rate!;
 
   const { error } = await supabase
     .from("expenses")
@@ -115,7 +115,12 @@ export async function updateExpense(
       location: parsed.data.location || null,
       notes: parsed.data.notes || null,
     })
+    // Scoped by trip_id too, not just id + user_id — otherwise a stale/
+    // tampered URL pairing this trip's id with another of the user's own
+    // expenses would silently reprice that expense using *this* trip's
+    // base_currency while leaving it attached to its real trip.
     .eq("id", expenseId)
+    .eq("trip_id", tripId)
     .eq("user_id", user.id);
 
   if (error) {
@@ -137,6 +142,7 @@ export async function deleteExpense(
     .from("expenses")
     .delete()
     .eq("id", expenseId)
+    .eq("trip_id", tripId)
     .eq("user_id", user.id);
 
   if (error) {
@@ -151,9 +157,10 @@ export async function deleteExpense(
 export async function createCategory(
   input: unknown,
 ): Promise<{ error: string } | { category: Category }> {
-  const parsed = categorySchema.safeParse(input);
+  const dict = await getDictionary();
+  const parsed = categorySchema(dict.validation).safeParse(input);
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid category name." };
+    return { error: parsed.error.issues[0]?.message ?? dict.validation.categoryInvalid };
   }
 
   const { supabase, user } = await requireUser();
@@ -165,7 +172,7 @@ export async function createCategory(
     .single();
 
   if (error || !data) {
-    return { error: error?.message ?? "Could not create category." };
+    return { error: error?.message ?? dict.expenseForm.categoryCreateFailed };
   }
 
   return { category: data };

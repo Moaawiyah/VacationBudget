@@ -6,6 +6,8 @@ import { Search } from "lucide-react";
 import { CategoryIcon } from "@/components/ui/category-icon";
 import { formatCurrency } from "@/lib/currency/format";
 import { formatDateHeading } from "@/lib/format-date";
+import { translateCategoryName } from "@/lib/i18n/category-names";
+import { useDictionary, useLocale } from "@/components/i18n/locale-provider";
 import type { ExpenseWithCategory } from "@/types/expense";
 import type { Category } from "@/types/category";
 
@@ -22,6 +24,8 @@ export function ExpenseList({
   categories,
   baseCurrency,
 }: ExpenseListProps) {
+  const dict = useDictionary();
+  const { bcp47 } = useLocale();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
@@ -54,9 +58,9 @@ export function ExpenseList({
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-center">
         <p className="text-muted-foreground text-sm">
-          No expenses yet.
+          {dict.expenses.noExpensesTitle}
           <br />
-          Add your first vacation expense.
+          {dict.expenses.noExpensesSubtitle}
         </p>
       </div>
     );
@@ -66,12 +70,12 @@ export function ExpenseList({
     <div className="flex flex-col gap-4">
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+          <Search className="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search expenses"
-            className="border-border bg-card text-card-foreground focus:border-primary h-11 w-full rounded-2xl border pr-3 pl-9 text-sm outline-none"
+            placeholder={dict.expenses.searchPlaceholder}
+            className="border-border bg-card text-card-foreground focus:border-primary h-11 w-full rounded-2xl border ps-9 pe-3 text-sm outline-none"
           />
         </div>
         <select
@@ -79,10 +83,10 @@ export function ExpenseList({
           onChange={(e) => setCategoryFilter(e.target.value)}
           className="border-border bg-card text-card-foreground focus:border-primary h-11 shrink-0 rounded-2xl border px-3 text-sm outline-none"
         >
-          <option value="all">All</option>
+          <option value="all">{dict.expenses.allCategories}</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
-              {category.name}
+              {translateCategoryName(category.name, dict)}
             </option>
           ))}
         </select>
@@ -90,13 +94,18 @@ export function ExpenseList({
 
       {grouped.length === 0 ? (
         <p className="text-muted-foreground py-8 text-center text-sm">
-          No matching expenses.
+          {dict.expenses.noMatching}
         </p>
       ) : (
         grouped.map(([date, items]) => (
           <div key={date} className="flex flex-col gap-2">
             <h2 className="text-muted-foreground text-sm font-medium">
-              {formatDateHeading(date)}
+              {formatDateHeading(
+                date,
+                bcp47,
+                dict.expenses.today,
+                dict.expenses.yesterday,
+              )}
             </h2>
             <div className="flex flex-col gap-2">
               {items.map((expense) => {
@@ -117,16 +126,16 @@ export function ExpenseList({
                         {expense.description}
                       </p>
                       <p className="text-muted-foreground truncate text-xs">
-                        {expense.category.name}
+                        {translateCategoryName(expense.category.name, dict)}
                       </p>
                     </div>
-                    <div className="shrink-0 text-right">
+                    <div className="shrink-0 text-end">
                       <p className="text-card-foreground text-sm font-semibold">
-                        {formatCurrency(expense.converted_amount, baseCurrency)}
+                        {formatCurrency(expense.converted_amount, baseCurrency, bcp47)}
                       </p>
                       {expense.currency !== baseCurrency && (
                         <p className="text-muted-foreground text-xs">
-                          {formatCurrency(expense.amount, expense.currency)}
+                          {formatCurrency(expense.amount, expense.currency, bcp47)}
                         </p>
                       )}
                     </div>

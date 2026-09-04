@@ -10,13 +10,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { ChartTooltip } from "@/components/charts/chart-tooltip";
+import { useDictionary, useLocale } from "@/components/i18n/locale-provider";
 import type { DailySpend } from "@/lib/calculations/expenses";
 
-function shortDateLabel(dateStr: string): string {
+function shortDateLabel(dateStr: string, locale: string): string {
   const date = new Date(`${dateStr}T00:00:00`);
-  return new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" }).format(
-    date,
-  );
+  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(date);
 }
 
 export function DailyBarChart({
@@ -26,11 +25,14 @@ export function DailyBarChart({
   data: DailySpend[];
   currency: string;
 }) {
+  const dict = useDictionary();
+  const { bcp47 } = useLocale();
+
   if (data.length === 0) return null;
 
   const chartData = data.map((d) => ({
     amount: d.amount,
-    label: shortDateLabel(d.date),
+    label: shortDateLabel(d.date, bcp47),
   }));
   // A fixed minimum width per bar so long trips scroll horizontally instead
   // of squeezing every bar down to an unreadable sliver.
@@ -38,7 +40,9 @@ export function DailyBarChart({
 
   return (
     <div className="border-border bg-card rounded-3xl border p-5">
-      <h2 className="text-muted-foreground text-sm font-medium">Spending by day</h2>
+      <h2 className="text-muted-foreground text-sm font-medium">
+        {dict.dashboard.dailyChartTitle}
+      </h2>
       <div className="mt-3 overflow-x-auto">
         <div style={{ width: minWidth, height: 160 }}>
           <ResponsiveContainer>
@@ -57,7 +61,7 @@ export function DailyBarChart({
               />
               <Bar
                 dataKey="amount"
-                name="Spent"
+                name={dict.dashboard.spentSeries}
                 fill="var(--chart-series-1)"
                 radius={[4, 4, 0, 0]}
                 maxBarSize={24}

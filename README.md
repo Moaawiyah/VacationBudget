@@ -82,6 +82,8 @@ SQL Editor (paste the file's contents, click Run):
 3. `0003_categories.sql` — categories table (13 seeded system defaults + custom), RLS
 4. `0004_expenses.sql` — expenses table, RLS
 5. `0005_planned_budgets.sql` — planned_budgets table, RLS
+6. `0006_expenses_update_policy_fix.sql` — tightens the expenses update RLS
+   policy to also verify trip ownership, matching the insert policy
 
 Every table has Row Level Security enabled — a user can only read or write their own
 trips, expenses, categories, and planned budgets. `user_id` is always taken from the

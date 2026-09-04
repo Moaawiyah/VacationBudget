@@ -1,15 +1,20 @@
 import { z } from "zod";
+import type { Dictionary } from "@/lib/i18n/types";
 
-export const loginSchema = z.object({
-  email: z.email("Enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
+export function loginSchema(t: Dictionary["validation"]) {
+  return z.object({
+    email: z.email(t.emailInvalid),
+    password: z.string().min(1, t.passwordRequired),
+  });
+}
 
-export type LoginInput = z.infer<typeof loginSchema>;
+export type LoginInput = z.infer<ReturnType<typeof loginSchema>>;
 
-export const registerSchema = z.object({
-  email: z.email("Enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
+export function registerSchema(t: Dictionary["validation"]) {
+  return z.object({
+    email: z.email(t.emailInvalid),
+    password: z.string().min(8, t.passwordMin8),
+  });
+}
 
-export type RegisterInput = z.infer<typeof registerSchema>;
+export type RegisterInput = z.infer<ReturnType<typeof registerSchema>>;

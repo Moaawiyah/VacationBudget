@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { ChartTooltip } from "@/components/charts/chart-tooltip";
+import { useDictionary } from "@/components/i18n/locale-provider";
 import type { PlannedActualSpend } from "@/lib/calculations/expenses";
 
 export function PlannedActualChart({
@@ -20,13 +21,17 @@ export function PlannedActualChart({
   data: PlannedActualSpend[];
   currency: string;
 }) {
+  const dict = useDictionary();
+
   if (data.length === 0) return null;
 
   const height = Math.max(140, data.length * 44);
 
   return (
     <div className="border-border bg-card rounded-3xl border p-5">
-      <h2 className="text-muted-foreground text-sm font-medium">Planned vs actual</h2>
+      <h2 className="text-muted-foreground text-sm font-medium">
+        {dict.dashboard.plannedActualChartTitle}
+      </h2>
       <div style={{ width: "100%", height }} className="mt-3">
         <ResponsiveContainer>
           <BarChart
@@ -59,14 +64,14 @@ export function PlannedActualChart({
             />
             <Bar
               dataKey="planned"
-              name="Planned"
+              name={dict.dashboard.plannedSeries}
               fill="var(--chart-series-2)"
               radius={[0, 4, 4, 0]}
               maxBarSize={16}
             />
             <Bar
               dataKey="actual"
-              name="Actual"
+              name={dict.dashboard.actualSeries}
               fill="var(--chart-series-1)"
               radius={[0, 4, 4, 0]}
               maxBarSize={16}

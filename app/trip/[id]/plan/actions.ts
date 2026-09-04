@@ -2,25 +2,22 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
-
-const amountSchema = z.coerce.number().min(0, "Amount can't be negative");
+import { requireUser } from "@/lib/auth";
+import { getDictionary } from "@/lib/i18n/server";
 
 export async function upsertPlannedBudget(
   tripId: string,
   categoryId: string,
   amount: unknown,
 ): Promise<{ error?: string }> {
+  const dict = await getDictionary();
+  const amountSchema = z.coerce.number().min(0, dict.validation.amountNegative);
   const parsed = amountSchema.safeParse(amount);
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid amount." };
+    return { error: parsed.error.issues[0]?.message ?? dict.validation.amountInvalid };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Not authenticated." };
+  const { supabase, user } = await requireUser();
 
   // RLS enforces trip ownership too — this check just gives a clean error
   // instead of a silent no-op if someone tries to plan for a trip that
@@ -31,7 +28,7 @@ export async function upsertPlannedBudget(
     .eq("id", tripId)
     .eq("user_id", user.id)
     .single();
-  if (!trip) return { error: "Trip not found." };
+  if (!trip) return { error: dict.trips.tripNotFound };
 
   const { error } = await supabase
     .from("planned_budgets")

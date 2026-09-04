@@ -5,11 +5,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
+import { useDictionary } from "@/components/i18n/locale-provider";
 import { register as registerUser } from "./actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function RegisterPage() {
+  const dict = useDictionary();
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -17,7 +19,7 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterInput>({ resolver: zodResolver(registerSchema) });
+  } = useForm<RegisterInput>({ resolver: zodResolver(registerSchema(dict.validation)) });
 
   function onSubmit(data: RegisterInput) {
     setFormError(null);
@@ -37,12 +39,14 @@ export default function RegisterPage() {
         <div className="bg-primary flex h-14 w-14 items-center justify-center rounded-2xl text-2xl">
           ✉️
         </div>
-        <h1 className="text-foreground text-xl font-semibold">Check your email</h1>
+        <h1 className="text-foreground text-xl font-semibold">
+          {dict.auth.checkEmailTitle}
+        </h1>
         <p className="text-muted-foreground max-w-xs text-sm">
-          We sent you a confirmation link. Open it to activate your account, then log in.
+          {dict.auth.checkEmailBody}
         </p>
         <Link href="/login" className="text-primary text-sm font-medium">
-          Back to login
+          {dict.auth.backToLogin}
         </Link>
       </main>
     );
@@ -51,15 +55,15 @@ export default function RegisterPage() {
   return (
     <main className="safe-top safe-x safe-bottom flex flex-1 flex-col justify-center gap-6 px-6">
       <div>
-        <h1 className="text-foreground text-2xl font-semibold">Create account</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Start planning your next trip.
-        </p>
+        <h1 className="text-foreground text-2xl font-semibold">
+          {dict.auth.createAccount}
+        </h1>
+        <p className="text-muted-foreground mt-1 text-sm">{dict.auth.registerSubtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <Input
-          label="Email"
+          label={dict.auth.email}
           type="email"
           inputMode="email"
           autoComplete="email"
@@ -67,7 +71,7 @@ export default function RegisterPage() {
           {...register("email")}
         />
         <Input
-          label="Password"
+          label={dict.auth.password}
           type="password"
           autoComplete="new-password"
           error={errors.password?.message}
@@ -75,14 +79,14 @@ export default function RegisterPage() {
         />
         {formError && <p className="text-danger text-sm">{formError}</p>}
         <Button type="submit" loading={isPending}>
-          Create account
+          {dict.auth.createAccount}
         </Button>
       </form>
 
       <p className="text-muted-foreground text-center text-sm">
-        Already have an account?{" "}
+        {dict.auth.alreadyHaveAccount}{" "}
         <Link href="/login" className="text-primary font-medium">
-          Log in
+          {dict.auth.loginLink}
         </Link>
       </p>
     </main>

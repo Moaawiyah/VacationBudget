@@ -2,24 +2,17 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth";
+import { getDictionary } from "@/lib/i18n/server";
 import { tripSchema, type TripInput } from "@/lib/validation/trip";
 
 type ActionResult = { error: string } | never;
 
-async function requireUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  return { supabase, user };
-}
-
 export async function createTrip(input: TripInput): Promise<ActionResult> {
-  const parsed = tripSchema.safeParse(input);
+  const dict = await getDictionary();
+  const parsed = tripSchema(dict.validation).safeParse(input);
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid trip details." };
+    return { error: parsed.error.issues[0]?.message ?? dict.validation.tripInvalid };
   }
 
   const { supabase, user } = await requireUser();
@@ -53,9 +46,10 @@ export async function updateTrip(
   tripId: string,
   input: TripInput,
 ): Promise<ActionResult> {
-  const parsed = tripSchema.safeParse(input);
+  const dict = await getDictionary();
+  const parsed = tripSchema(dict.validation).safeParse(input);
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid trip details." };
+    return { error: parsed.error.issues[0]?.message ?? dict.validation.tripInvalid };
   }
 
   const { supabase, user } = await requireUser();

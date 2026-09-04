@@ -2,9 +2,11 @@
 
 import { updateTrip } from "@/app/trips/actions";
 import { TripForm, type TripFormValues } from "@/components/trips/trip-form";
+import { useDictionary } from "@/components/i18n/locale-provider";
 import type { Trip } from "@/types/trip";
 
 export function EditTripForm({ trip }: { trip: Trip }) {
+  const dict = useDictionary();
   const defaultValues: Partial<TripFormValues> = {
     name: trip.name,
     description: trip.description ?? "",
@@ -19,7 +21,7 @@ export function EditTripForm({ trip }: { trip: Trip }) {
     <TripForm
       defaultValues={defaultValues}
       onSubmit={(data) => updateTrip(trip.id, data)}
-      submitLabel="Save changes"
+      submitLabel={dict.tripForm.saveChanges}
     />
   );
 }

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { tripSchema, type TripInput } from "@/lib/validation/trip";
 import { CURRENCIES } from "@/lib/currency/constants";
+import { useDictionary } from "@/components/i18n/locale-provider";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import { Button } from "@/components/ui/button";
 // <input type="number"> gives it) differ from TripInput (after coercion, a
 // real number). react-hook-form's third generic lets handleSubmit hand back
 // the already-validated/coerced TripInput shape to onSubmit.
-export type TripFormValues = z.input<typeof tripSchema>;
+export type TripFormValues = z.input<ReturnType<typeof tripSchema>>;
 
 type TripFormProps = {
   defaultValues?: Partial<TripFormValues>;
@@ -23,6 +24,7 @@ type TripFormProps = {
 };
 
 export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps) {
+  const dict = useDictionary();
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const {
@@ -30,7 +32,7 @@ export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps
     handleSubmit,
     formState: { errors },
   } = useForm<TripFormValues, unknown, TripInput>({
-    resolver: zodResolver(tripSchema),
+    resolver: zodResolver(tripSchema(dict.validation)),
     defaultValues: { base_currency: "EUR", ...defaultValues },
   });
 
@@ -44,22 +46,26 @@ export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps
 
   return (
     <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
-      <Input label="Trip name" error={errors.name?.message} {...register("name")} />
       <Input
-        label="Destination"
-        placeholder="Italy, Switzerland, Austria"
+        label={dict.tripForm.name}
+        error={errors.name?.message}
+        {...register("name")}
+      />
+      <Input
+        label={dict.tripForm.destination}
+        placeholder={dict.tripForm.destinationPlaceholder}
         error={errors.destination?.message}
         {...register("destination")}
       />
       <div className="grid grid-cols-2 gap-3">
         <Input
-          label="Start date"
+          label={dict.tripForm.startDate}
           type="date"
           error={errors.start_date?.message}
           {...register("start_date")}
         />
         <Input
-          label="End date"
+          label={dict.tripForm.endDate}
           type="date"
           error={errors.end_date?.message}
           {...register("end_date")}
@@ -67,7 +73,7 @@ export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps
       </div>
       <div className="grid grid-cols-2 gap-3">
         <Select
-          label="Currency"
+          label={dict.tripForm.currency}
           error={errors.base_currency?.message}
           {...register("base_currency")}
         >
@@ -78,7 +84,7 @@ export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps
           ))}
         </Select>
         <Input
-          label="Total budget"
+          label={dict.tripForm.totalBudget}
           type="number"
           inputMode="decimal"
           step="0.01"
@@ -88,7 +94,7 @@ export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps
         />
       </div>
       <Input
-        label="Description (optional)"
+        label={dict.tripForm.descriptionOptional}
         error={errors.description?.message}
         {...register("description")}
       />

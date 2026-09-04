@@ -131,12 +131,12 @@ export function ExpenseList({
                     </div>
                     <div className="shrink-0 text-end">
                       <p className="text-card-foreground text-sm font-semibold">
-                        {formatCurrency(expense.converted_amount, baseCurrency, bcp47)}
+                        {formatCurrency(expense.amount, expense.currency, bcp47)}
                       </p>
                       {expense.currency !== baseCurrency && (
-                        <p className="text-muted-foreground text-xs">
-                          {formatCurrency(expense.amount, expense.currency, bcp47)}
-                        </p>
+                        <span className="bg-primary/10 text-primary mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium">
+                          ≈ {formatCurrency(expense.converted_amount, baseCurrency, bcp47)}
+                        </span>
                       )}
                     </div>
                   </Link>

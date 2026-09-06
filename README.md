@@ -126,18 +126,67 @@ npm run start
 `next.config.ts` sets `output: "standalone"`, producing a self-contained server
 bundle — this is what Railway runs in production.
 
+## Running with Docker
+
+The `Dockerfile` builds the same `output: "standalone"` bundle above into a
+production-like image (multi-stage: install deps → `next build` → minimal
+runtime running as a non-root user). Supabase stays external — the container
+only ever holds the Next.js app, not a database.
+
+`NEXT_PUBLIC_*` variables are inlined into the client bundle by Next.js at
+build time, so they must be passed as `--build-arg`s, not just at `docker run`
+time. `SUPABASE_SERVICE_ROLE_KEY` is server-only and is never baked into the
+image — it's supplied at container start via `--env-file`.
+
+Build:
+
+```bash
+docker build \
+  --build-arg NEXT_PUBLIC_SUPABASE_URL=$(grep -oP '(?<=^NEXT_PUBLIC_SUPABASE_URL=).*' .env.local) \
+  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=$(grep -oP '(?<=^NEXT_PUBLIC_SUPABASE_ANON_KEY=).*' .env.local) \
+  --build-arg NEXT_PUBLIC_SITE_URL=http://localhost:3000 \
+  -t vacation-budget .
+```
+
+Run:
+
+```bash
+docker run --env-file .env.local -p 3000:3000 vacation-budget
+```
+
+Open `http://localhost:3000`.
+
+Or with Compose, which reads the same build args from `.env.local` for you
+(Compose only auto-loads a file literally named `.env`, so pass `--env-file`
+explicitly):
+
+```bash
+docker compose --env-file .env.local up --build
+```
+
+- `npm run dev` — normal local development, hot reload, no container.
+- **Docker** — a reproducible, production-like build/run of the app locally.
+- **Railway** — where the container actually runs in production.
+- **Supabase** — external managed Postgres/auth; never runs inside Docker here.
+
 ## Deploying to Railway
 
 1. Push this repo to GitHub (already connected, if you cloned it as-is).
 2. At [railway.app](https://railway.app), **New Project** → **Deploy from GitHub repo**
-   → select this repository. Railway auto-detects Next.js via Nixpacks — no Dockerfile
-   or extra config needed.
+   → select this repository. Railway detects the `Dockerfile` at the repo root and
+   builds from it (this replaces the previous Nixpacks auto-detection now that a
+   Dockerfile exists).
 3. In the Railway project's **Variables** tab, add the same four environment variables
    from `.env.local` above. Set `NEXT_PUBLIC_SITE_URL` to the domain Railway assigns
-   once the first deploy finishes (e.g. `https://your-app.up.railway.app`).
+   once the first deploy finishes (e.g. `https://your-app.up.railway.app`). Railway
+   forwards service variables as both build args and runtime env vars for Dockerfile
+   builds, so no separate "build-time variables" step should be needed — confirm this
+   in the Railway build logs on first deploy.
 4. Back in Supabase, add that same Railway URL (and `<url>/auth/confirm`) to
    Authentication → URL Configuration → Redirect URLs.
-5. Every push to the connected branch redeploys automatically.
+5. Railway sets `PORT` itself; the image already listens on `0.0.0.0:$PORT` (via
+   `server.js` from the standalone build), so no port config is needed.
+6. Every push to the connected branch redeploys automatically.
 
 ## Installing as a PWA on iPhone
 

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { ArrowLeft, Lock, Mail, MailCheck, Plane, UserPlus } from "lucide-react";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 import { useDictionary } from "@/components/i18n/locale-provider";
 import { register as registerUser } from "./actions";
@@ -36,8 +37,8 @@ export default function RegisterPage() {
   if (submitted) {
     return (
       <main className="safe-top safe-x safe-bottom flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-        <div className="bg-primary flex h-14 w-14 items-center justify-center rounded-2xl text-2xl">
-          ✉️
+        <div className="bg-primary text-primary-foreground flex h-14 w-14 items-center justify-center rounded-2xl">
+          <MailCheck aria-hidden className="h-7 w-7" />
         </div>
         <h1 className="text-foreground text-xl font-semibold">
           {dict.auth.checkEmailTitle}
@@ -45,7 +46,11 @@ export default function RegisterPage() {
         <p className="text-muted-foreground max-w-xs text-sm">
           {dict.auth.checkEmailBody}
         </p>
-        <Link href="/login" className="text-primary text-sm font-medium">
+        <Link
+          href="/login"
+          className="text-primary inline-flex items-center gap-1.5 text-sm font-medium"
+        >
+          <ArrowLeft aria-hidden className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
           {dict.auth.backToLogin}
         </Link>
       </main>
@@ -55,6 +60,9 @@ export default function RegisterPage() {
   return (
     <main className="safe-top safe-x safe-bottom flex flex-1 flex-col justify-center gap-6 px-6">
       <div>
+        <div className="bg-primary text-primary-foreground mb-4 flex h-12 w-12 items-center justify-center rounded-2xl">
+          <Plane aria-hidden className="h-6 w-6" />
+        </div>
         <h1 className="text-foreground text-2xl font-semibold">
           {dict.auth.createAccount}
         </h1>
@@ -64,6 +72,7 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <Input
           label={dict.auth.email}
+          icon={Mail}
           type="email"
           inputMode="email"
           autoComplete="email"
@@ -72,13 +81,15 @@ export default function RegisterPage() {
         />
         <Input
           label={dict.auth.password}
+          icon={Lock}
           type="password"
           autoComplete="new-password"
           error={errors.password?.message}
           {...register("password")}
         />
         {formError && <p className="text-danger text-sm">{formError}</p>}
-        <Button type="submit" loading={isPending}>
+        <Button type="submit" loading={isPending} className="gap-2">
+          <UserPlus aria-hidden className="h-4 w-4 shrink-0" />
           {dict.auth.createAccount}
         </Button>
       </form>

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Receipt, Search, SearchX } from "lucide-react";
 import { CategoryIcon } from "@/components/ui/category-icon";
 import { formatCurrency } from "@/lib/currency/format";
 import { formatDateHeading } from "@/lib/format-date";
@@ -57,6 +57,9 @@ export function ExpenseList({
   if (expenses.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-center">
+        <div className="bg-muted flex h-14 w-14 items-center justify-center rounded-2xl">
+          <Receipt aria-hidden className="text-muted-foreground h-6 w-6" />
+        </div>
         <p className="text-muted-foreground text-sm">
           {dict.expenses.noExpensesTitle}
           <br />
@@ -70,7 +73,10 @@ export function ExpenseList({
     <div className="flex flex-col gap-4">
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+          <Search
+            aria-hidden
+            className="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2"
+          />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -93,9 +99,10 @@ export function ExpenseList({
       </div>
 
       {grouped.length === 0 ? (
-        <p className="text-muted-foreground py-8 text-center text-sm">
-          {dict.expenses.noMatching}
-        </p>
+        <div className="text-muted-foreground flex flex-col items-center gap-2 py-8 text-center text-sm">
+          <SearchX aria-hidden className="h-5 w-5" />
+          <p>{dict.expenses.noMatching}</p>
+        </div>
       ) : (
         grouped.map(([date, items]) => (
           <div key={date} className="flex flex-col gap-2">
@@ -135,7 +142,8 @@ export function ExpenseList({
                       </p>
                       {expense.currency !== baseCurrency && (
                         <span className="bg-primary/10 text-primary mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium">
-                          ≈ {formatCurrency(expense.converted_amount, baseCurrency, bcp47)}
+                          ≈{" "}
+                          {formatCurrency(expense.converted_amount, baseCurrency, bcp47)}
                         </span>
                       )}
                     </div>

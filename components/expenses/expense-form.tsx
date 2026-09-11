@@ -5,6 +5,15 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import {
+  ArrowRightLeft,
+  Calendar,
+  Check,
+  MapPin,
+  PenLine,
+  StickyNote,
+  Store,
+} from "lucide-react";
+import {
   expenseFields,
   createExpenseSchema,
   type ExpenseInput,
@@ -158,6 +167,7 @@ export function ExpenseForm({
         <div className="flex flex-col gap-1.5">
           <Input
             label={interpolate(t.exchangeRateLabel, { currency, base: baseCurrency })}
+            icon={ArrowRightLeft}
             type="number"
             inputMode="decimal"
             step="0.0001"
@@ -189,34 +199,40 @@ export function ExpenseForm({
 
       <Input
         label={t.description}
+        icon={PenLine}
         placeholder={t.descriptionPlaceholder}
         error={errors.description?.message}
         {...register("description")}
       />
       <Input
         label={t.date}
+        icon={Calendar}
         type="date"
         error={errors.expense_date?.message}
         {...register("expense_date")}
       />
       <Input
         label={t.merchantOptional}
+        icon={Store}
         error={errors.merchant?.message}
         {...register("merchant")}
       />
       <Input
         label={t.locationOptional}
+        icon={MapPin}
         error={errors.location?.message}
         {...register("location")}
       />
       <Textarea
         label={t.notesOptional}
+        icon={StickyNote}
         error={errors.notes?.message}
         {...register("notes")}
       />
 
       {formError && <p className="text-danger text-sm">{formError}</p>}
-      <Button type="submit" loading={isPending}>
+      <Button type="submit" loading={isPending} className="gap-2">
+        <Check aria-hidden className="h-4 w-4 shrink-0" />
         {submitLabel}
       </Button>
     </form>

@@ -1,3 +1,12 @@
+import {
+  CalendarDays,
+  ClipboardList,
+  CreditCard,
+  Gauge,
+  PiggyBank,
+  ShieldCheck,
+  Wallet,
+} from "lucide-react";
 import type { Trip } from "@/types/trip";
 import {
   calculateRemainingBudget,
@@ -32,8 +41,11 @@ export async function BudgetOverview({
   return (
     <div className="flex flex-col gap-4">
       <div className="border-border bg-card rounded-3xl border p-5">
-        <div className="flex items-baseline justify-between">
-          <p className="text-muted-foreground text-sm">{d.budgetUsed}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
+            <Gauge aria-hidden className="h-4 w-4 shrink-0" />
+            {d.budgetUsed}
+          </p>
           <p className="text-muted-foreground text-sm font-medium">
             {interpolate(d.percentUsed, { n: Math.round(percentUsed) })}
           </p>
@@ -44,28 +56,34 @@ export async function BudgetOverview({
       <div className="grid grid-cols-2 gap-3">
         <StatCard
           label={d.budget}
+          icon={Wallet}
           value={formatCurrency(trip.total_budget, trip.base_currency, bcp47)}
         />
         <StatCard
           label={d.spent}
+          icon={CreditCard}
           value={formatCurrency(totalSpent, trip.base_currency, bcp47)}
         />
         <StatCard
           label={d.remaining}
+          icon={PiggyBank}
           value={formatCurrency(remaining, trip.base_currency, bcp47)}
           tone={isOverBudget ? "danger" : "success"}
         />
         <StatCard
           label={d.planned}
+          icon={ClipboardList}
           value={formatCurrency(totalPlanned, trip.base_currency, bcp47)}
         />
         <StatCard
           label={d.remainingDays}
+          icon={CalendarDays}
           value={String(remainingDays)}
           sublabel={remainingDays === 1 ? d.dayLeft : d.daysLeft}
         />
         <StatCard
           label={d.safeDailyBudget}
+          icon={ShieldCheck}
           value={interpolate(d.perDay, {
             amount: formatCurrency(dailySafe, trip.base_currency, bcp47),
           })}

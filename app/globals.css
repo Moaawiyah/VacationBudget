@@ -4,64 +4,82 @@
  * Design tokens: every color used in the app should reference one of these
  * variables (via the @theme mapping below) rather than a raw Tailwind color.
  * That's what lets light/dark mode and future theme tweaks stay in one place.
+ *
+ * Palette: warm sand background, cream cards, espresso text and a caramel
+ * primary — a calm, relaxed "bright brown" look. Every text/background pair
+ * used by the UI meets WCAG AA (4.5:1).
  */
 :root {
-  --background: #f7f7f8;
-  --foreground: #0a0a0b;
-  --card: #ffffff;
-  --card-foreground: #0a0a0b;
-  --border: #e5e5ea;
-  --muted: #f0f0f2;
-  --muted-foreground: #6b6b73;
-  --primary: #2563eb;
+  --background: #efe2d0;
+  /* Soft cream glow painted at the top of the page behind content. */
+  --background-glow: #f9efe1;
+  --foreground: #2b1d14;
+  --card: #fdf8f1;
+  --card-foreground: #2b1d14;
+  --border: #e2d1bb;
+  --muted: #f2e6d6;
+  --muted-foreground: #6b5646;
+  --primary: #8c5129;
   --primary-foreground: #ffffff;
-  --danger: #dc2626;
-  --success: #16a34a;
+  --danger: #b3362b;
+  --danger-foreground: #ffffff;
+  --success: #3d7a37;
+  /* Warm-tinted shadow colors, so elevation reads as soft, not gray. */
+  --shadow-soft: rgb(74 45 20 / 0.08);
+  --shadow-strong: rgb(74 45 20 / 0.16);
   /* Chart series identity — deliberately separate from --primary, which is a
      UI/brand color, not a data-series color. Slots 1-2 of a validated
      CVD-safe categorical palette (adjacent-pair Delta E 9.1 light / 8.4 dark,
      both well above the 8 target). */
   --chart-series-1: #2a78d6;
   --chart-series-2: #eb6834;
-  --chart-grid: #e1e0d9;
+  --chart-grid: #eadcc9;
 }
 
 /* System dark mode, unless the user has explicitly chosen light in Settings. */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --background: #000000;
-    --foreground: #f2f2f3;
-    --card: #17171a;
-    --card-foreground: #f2f2f3;
-    --border: #2c2c30;
-    --muted: #1c1c1f;
-    --muted-foreground: #9a9aa1;
-    --primary: #3b82f6;
-    --primary-foreground: #ffffff;
-    --danger: #f87171;
-    --success: #4ade80;
+    --background: #1a140f;
+    --background-glow: rgb(220 154 98 / 0.1);
+    --foreground: #f3e9dd;
+    --card: #261e17;
+    --card-foreground: #f3e9dd;
+    --border: #3a2e24;
+    --muted: #30261d;
+    --muted-foreground: #b8a591;
+    --primary: #dc9a62;
+    --primary-foreground: #1f160f;
+    --danger: #f08672;
+    --danger-foreground: #1f160f;
+    --success: #86c27d;
+    --shadow-soft: rgb(0 0 0 / 0.3);
+    --shadow-strong: rgb(0 0 0 / 0.45);
     --chart-series-1: #3987e5;
     --chart-series-2: #d95926;
-    --chart-grid: #2c2c2a;
+    --chart-grid: #362b21;
   }
 }
 
 /* Explicit dark mode, chosen in Settings, wins regardless of system preference. */
 :root.dark {
-  --background: #000000;
-  --foreground: #f2f2f3;
-  --card: #17171a;
-  --card-foreground: #f2f2f3;
-  --border: #2c2c30;
-  --muted: #1c1c1f;
-  --muted-foreground: #9a9aa1;
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-  --danger: #f87171;
-  --success: #4ade80;
+  --background: #1a140f;
+  --background-glow: rgb(220 154 98 / 0.1);
+  --foreground: #f3e9dd;
+  --card: #261e17;
+  --card-foreground: #f3e9dd;
+  --border: #3a2e24;
+  --muted: #30261d;
+  --muted-foreground: #b8a591;
+  --primary: #dc9a62;
+  --primary-foreground: #1f160f;
+  --danger: #f08672;
+  --danger-foreground: #1f160f;
+  --success: #86c27d;
+  --shadow-soft: rgb(0 0 0 / 0.3);
+  --shadow-strong: rgb(0 0 0 / 0.45);
   --chart-series-1: #3987e5;
   --chart-series-2: #d95926;
-  --chart-grid: #2c2c2a;
+  --chart-grid: #362b21;
 }
 
 /* Maps CSS variables to Tailwind utilities, e.g. bg-background, text-muted-foreground. */
@@ -76,15 +94,37 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
   --color-success: var(--success);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* Softer, warm-tinted versions of Tailwind's default shadow scale. */
+  --shadow-sm: 0 1px 3px 0 var(--shadow-soft), 0 1px 2px -1px var(--shadow-soft);
+  --shadow-md: 0 4px 10px -2px var(--shadow-soft), 0 2px 4px -2px var(--shadow-soft);
+  --shadow-lg: 0 10px 24px -6px var(--shadow-strong), 0 4px 8px -4px var(--shadow-soft);
+}
+
+html {
+  /* Fills overscroll / rubber-band areas with the page color. */
+  background-color: var(--background);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  /* A fixed-height warm glow at the top — sized in rem so it doesn't stretch
+     on long pages, and a single gradient layer so it stays cheap on mobile. */
+  background-image: radial-gradient(
+    ellipse 120% 28rem at 50% 0,
+    var(--background-glow),
+    transparent
+  );
+  background-repeat: no-repeat;
   color: var(--foreground);
   overscroll-behavior-y: none;
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--primary) 25%, transparent);
 }
 
 /* iPhone safe-area helpers, used mainly by the bottom nav and top headers. */

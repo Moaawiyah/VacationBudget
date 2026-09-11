@@ -52,7 +52,7 @@ export default async function TripsPage() {
             aria-label={dict.nav.settings}
             className="text-muted-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-xl active:opacity-60"
           >
-            <Settings className="h-5 w-5" />
+            <Settings aria-hidden className="h-5 w-5" />
           </Link>
           <LogoutButton />
         </div>

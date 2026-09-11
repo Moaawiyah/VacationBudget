@@ -1,3 +1,4 @@
+import { CalendarDays, TrendingDown, TrendingUp } from "lucide-react";
 import type { Trip } from "@/types/trip";
 import type { ExpenseWithCategory } from "@/types/expense";
 import { calculateTripDays, calculateFlatDailyTarget } from "@/lib/calculations/trip";
@@ -28,7 +29,10 @@ export async function DailySpendingList({
 
   return (
     <div className="flex flex-col gap-2">
-      <h2 className="text-muted-foreground text-sm font-medium">{d.dailySpending}</h2>
+      <h2 className="text-muted-foreground flex items-center gap-1.5 text-sm font-medium">
+        <CalendarDays aria-hidden className="h-4 w-4 shrink-0" />
+        {d.dailySpending}
+      </h2>
       <div className="flex flex-col gap-2">
         {days.map((day) => {
           const diff = target - day.amount;
@@ -56,10 +60,18 @@ export async function DailySpendingList({
               </div>
               <p
                 className={cn(
-                  "text-sm font-semibold",
+                  "flex shrink-0 items-center gap-1 text-sm font-semibold",
                   isOver ? "text-danger" : "text-success",
                 )}
               >
+                {isOver ? (
+                  <TrendingUp aria-hidden className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
+                ) : (
+                  <TrendingDown
+                    aria-hidden
+                    className="h-4 w-4 shrink-0 rtl:-scale-x-100"
+                  />
+                )}
                 {formatCurrency(Math.abs(diff), trip.base_currency, bcp47)}{" "}
                 {isOver ? d.over : d.under}
               </p>

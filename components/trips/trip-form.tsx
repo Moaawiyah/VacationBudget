@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Coins, Luggage, PenLine, Wallet } from "lucide-react";
 import type { z } from "zod";
 import { tripSchema, type TripInput } from "@/lib/validation/trip";
 import { CURRENCIES } from "@/lib/currency/constants";
@@ -10,6 +11,7 @@ import { useDictionary } from "@/components/i18n/locale-provider";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { CountryPicker } from "@/components/trips/country-picker";
 
 // The raw form fields (before Zod coercion, e.g. total_budget as whatever the
 // <input type="number"> gives it) differ from TripInput (after coercion, a
@@ -29,6 +31,7 @@ export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps
   const [formError, setFormError] = useState<string | null>(null);
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<TripFormValues, unknown, TripInput>({
@@ -48,14 +51,24 @@ export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps
     <form onSubmit={handleSubmit(submit)} className="flex flex-col gap-4">
       <Input
         label={dict.tripForm.name}
+        icon={Luggage}
         error={errors.name?.message}
         {...register("name")}
       />
-      <Input
-        label={dict.tripForm.destination}
-        placeholder={dict.tripForm.destinationPlaceholder}
-        error={errors.destination?.message}
-        {...register("destination")}
+      <Controller
+        control={control}
+        name="destination"
+        render={({ field }) => (
+          <CountryPicker
+            ref={field.ref}
+            name={field.name}
+            label={dict.tripForm.destination}
+            value={field.value}
+            onChange={field.onChange}
+            onBlur={field.onBlur}
+            error={errors.destination?.message}
+          />
+        )}
       />
       <div className="grid grid-cols-2 gap-3">
         <Input
@@ -74,6 +87,7 @@ export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps
       <div className="grid grid-cols-2 gap-3">
         <Select
           label={dict.tripForm.currency}
+          icon={Coins}
           error={errors.base_currency?.message}
           {...register("base_currency")}
         >
@@ -85,6 +99,7 @@ export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps
         </Select>
         <Input
           label={dict.tripForm.totalBudget}
+          icon={Wallet}
           type="number"
           inputMode="decimal"
           step="0.01"
@@ -95,6 +110,7 @@ export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps
       </div>
       <Input
         label={dict.tripForm.descriptionOptional}
+        icon={PenLine}
         error={errors.description?.message}
         {...register("description")}
       />

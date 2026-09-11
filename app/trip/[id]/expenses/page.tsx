@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { Receipt } from "lucide-react";
 import { getTrip } from "@/lib/data/trips";
 import { getCategories } from "@/lib/data/categories";
 import { getExpensesForTrip } from "@/lib/data/expenses";
@@ -24,7 +25,10 @@ export default async function ExpensesPage({ params }: PageProps<"/trip/[id]/exp
       <Suspense fallback={null}>
         <ExpenseSavedToast />
       </Suspense>
-      <h1 className="text-foreground text-xl font-semibold">{dict.expenses.title}</h1>
+      <h1 className="text-foreground flex items-center gap-2 text-xl font-semibold">
+        <Receipt aria-hidden className="text-primary h-5 w-5 shrink-0" />
+        {dict.expenses.title}
+      </h1>
       <ExpenseList
         tripId={id}
         expenses={expenses}

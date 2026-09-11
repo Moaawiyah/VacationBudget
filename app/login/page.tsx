@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { Lock, LogIn, Mail, Plane } from "lucide-react";
 import { loginSchema, type LoginInput } from "@/lib/validation/auth";
 import { useDictionary } from "@/components/i18n/locale-provider";
 import { login } from "./actions";
@@ -31,6 +32,9 @@ export default function LoginPage() {
   return (
     <main className="safe-top safe-x safe-bottom flex flex-1 flex-col justify-center gap-6 px-6">
       <div>
+        <div className="bg-primary text-primary-foreground mb-4 flex h-12 w-12 items-center justify-center rounded-2xl">
+          <Plane aria-hidden className="h-6 w-6" />
+        </div>
         <h1 className="text-foreground text-2xl font-semibold">
           {dict.auth.welcomeBack}
         </h1>
@@ -40,6 +44,7 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <Input
           label={dict.auth.email}
+          icon={Mail}
           type="email"
           inputMode="email"
           autoComplete="email"
@@ -48,13 +53,15 @@ export default function LoginPage() {
         />
         <Input
           label={dict.auth.password}
+          icon={Lock}
           type="password"
           autoComplete="current-password"
           error={errors.password?.message}
           {...register("password")}
         />
         {formError && <p className="text-danger text-sm">{formError}</p>}
-        <Button type="submit" loading={isPending}>
+        <Button type="submit" loading={isPending} className="gap-2">
+          <LogIn aria-hidden className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
           {dict.auth.logIn}
         </Button>
       </form>

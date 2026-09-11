@@ -1,3 +1,12 @@
+import {
+  Calculator,
+  CalendarDays,
+  CircleCheck,
+  CreditCard,
+  Receipt,
+  Tag,
+  Wallet,
+} from "lucide-react";
 import type { Trip } from "@/types/trip";
 import type { ExpenseWithCategory } from "@/types/expense";
 import {
@@ -46,6 +55,9 @@ export async function TripReport({
   return (
     <div className="flex flex-col gap-4">
       <div className="border-border bg-card rounded-3xl border p-5 text-center">
+        <div className="bg-primary/10 text-primary mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl">
+          <CircleCheck aria-hidden className="h-6 w-6" />
+        </div>
         <p className="text-muted-foreground text-sm">{d.tripCompleted}</p>
         <p
           className={cn(
@@ -61,19 +73,23 @@ export async function TripReport({
       <div className="grid grid-cols-2 gap-3">
         <StatCard
           label={d.originalBudget}
+          icon={Wallet}
           value={formatCurrency(trip.total_budget, trip.base_currency, bcp47)}
         />
         <StatCard
           label={d.finalSpending}
+          icon={CreditCard}
           value={formatCurrency(totalSpent, trip.base_currency, bcp47)}
         />
         <StatCard
           label={d.averagePerDay}
+          icon={Calculator}
           value={formatCurrency(avgPerDay, trip.base_currency, bcp47)}
         />
         {highestDay && (
           <StatCard
             label={d.highestSpendingDay}
+            icon={CalendarDays}
             value={formatCurrency(highestDay.amount, trip.base_currency, bcp47)}
             sublabel={formatDateHeading(
               highestDay.date,
@@ -88,6 +104,7 @@ export async function TripReport({
       {largestExpense && (
         <StatCard
           label={d.largestExpense}
+          icon={Receipt}
           value={formatCurrency(
             largestExpense.converted_amount,
             trip.base_currency,
@@ -100,6 +117,7 @@ export async function TripReport({
       {topCategory && (
         <StatCard
           label={d.mostExpensiveCategory}
+          icon={Tag}
           value={translateCategoryName(topCategory.name, dict)}
           sublabel={formatCurrency(topCategory.amount, trip.base_currency, bcp47)}
         />

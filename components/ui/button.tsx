@@ -10,7 +10,7 @@ const VARIANT_CLASSES: Record<NonNullable<ButtonProps["variant"]>, string> = {
   primary: "bg-primary text-primary-foreground active:opacity-80",
   secondary: "bg-muted text-foreground active:opacity-70",
   ghost: "bg-transparent text-foreground active:bg-muted",
-  danger: "bg-danger text-white active:opacity-80",
+  danger: "bg-danger text-danger-foreground active:opacity-80",
 };
 
 export function Button({

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { ClipboardList } from "lucide-react";
 import { getTrip } from "@/lib/data/trips";
 import { getCategories } from "@/lib/data/categories";
 import { getExpensesForTrip } from "@/lib/data/expenses";
@@ -43,8 +44,11 @@ export default async function TripPlanPage({ params }: PageProps<"/trip/[id]/pla
   return (
     <main className="safe-x flex flex-1 flex-col gap-4 p-6">
       <div className="border-border bg-card rounded-3xl border p-5">
-        <div className="flex items-baseline justify-between">
-          <p className="text-muted-foreground text-sm">{dict.plan.totalPlanned}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
+            <ClipboardList aria-hidden className="h-4 w-4 shrink-0" />
+            {dict.plan.totalPlanned}
+          </p>
           <p
             className={cn(
               "text-lg font-semibold",

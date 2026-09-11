@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { Languages } from "lucide-react";
 import { setLocale } from "@/app/actions";
 import { LOCALES, LOCALE_LABELS } from "@/lib/i18n/config";
 import { useLocale, useDictionary } from "@/components/i18n/locale-provider";
@@ -22,6 +23,7 @@ export function LanguageSwitcher() {
     <div className="border-border bg-card rounded-3xl border p-5">
       <Select
         label={dict.settings.language}
+        icon={Languages}
         value={locale}
         onChange={handleChange}
         disabled={isPending}

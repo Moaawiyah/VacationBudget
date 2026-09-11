@@ -27,9 +27,10 @@ export function BottomNav({ tripId }: { tripId: string }) {
 
         <Link
           href={`${base}/expenses/new`}
+          aria-label={dict.expenses.addExpense}
           className="bg-primary text-primary-foreground -mt-6 flex h-14 w-14 items-center justify-center justify-self-center rounded-full shadow-lg active:opacity-90"
         >
-          <Plus className="h-6 w-6" />
+          <Plus aria-hidden className="h-6 w-6" />
         </Link>
 
         {tabs.slice(2).map((tab) => (

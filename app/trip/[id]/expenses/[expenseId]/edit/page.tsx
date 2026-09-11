@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Pencil } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getTrip } from "@/lib/data/trips";
 import { getCategories } from "@/lib/data/categories";
@@ -29,7 +30,8 @@ export default async function EditExpensePage({
 
   return (
     <main className="safe-x flex flex-1 flex-col gap-4 p-6">
-      <h1 className="text-foreground text-xl font-semibold">
+      <h1 className="text-foreground flex items-center gap-2 text-xl font-semibold">
+        <Pencil aria-hidden className="text-primary h-5 w-5 shrink-0" />
         {dict.expenses.editExpenseTitle}
       </h1>
       <EditExpenseForm

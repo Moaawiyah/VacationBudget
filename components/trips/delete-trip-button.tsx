@@ -17,7 +17,8 @@ export function DeleteTripButton({
   const [isPending, startTransition] = useTransition();
 
   function handleDelete() {
-    if (!window.confirm(interpolate(dict.trips.deleteConfirm, { name: tripName }))) return;
+    if (!window.confirm(interpolate(dict.trips.deleteConfirm, { name: tripName })))
+      return;
     startTransition(() => {
       deleteTrip(tripId);
     });

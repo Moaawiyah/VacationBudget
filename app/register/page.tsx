@@ -1,25 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Lock,
-  LogIn,
-  Mail,
-  MailCheck,
-  MailWarning,
-  Plane,
-  UserPlus,
-} from "lucide-react";
+import { Lock, Mail, Plane, UserPlus } from "lucide-react";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 import { useDictionary } from "@/components/i18n/locale-provider";
-import { interpolate } from "@/lib/i18n/interpolate";
 import { register as registerUser } from "./actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { CheckEmailNotice } from "@/components/auth/check-email-notice";
+import { EmailTakenDialog } from "@/components/auth/email-taken-dialog";
 
 export default function RegisterPage() {
   const dict = useDictionary();
@@ -28,20 +20,12 @@ export default function RegisterPage() {
   const [submitted, setSubmitted] = useState(false);
   // The already-registered email while the "email taken" dialog is open.
   const [takenEmail, setTakenEmail] = useState<string | null>(null);
-  const takenDialogRef = useRef<HTMLDialogElement>(null);
   const {
     register,
     handleSubmit,
     setFocus,
     formState: { errors },
   } = useForm<RegisterInput>({ resolver: zodResolver(registerSchema(dict.validation)) });
-
-  // Native <dialog> + showModal(): real modal semantics, focus trapping and
-  // Escape-to-close for free.
-  useEffect(() => {
-    const dialog = takenDialogRef.current;
-    if (takenEmail && dialog && !dialog.open) dialog.showModal();
-  }, [takenEmail]);
 
   function onSubmit(data: RegisterInput) {
     setFormError(null);
@@ -57,33 +41,7 @@ export default function RegisterPage() {
     });
   }
 
-  function chooseDifferentEmail() {
-    takenDialogRef.current?.close();
-    setFocus("email", { shouldSelect: true });
-  }
-
-  if (submitted) {
-    return (
-      <main className="safe-top safe-x safe-bottom flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-        <div className="bg-primary text-primary-foreground flex h-14 w-14 items-center justify-center rounded-2xl">
-          <MailCheck aria-hidden className="h-7 w-7" />
-        </div>
-        <h1 className="text-foreground text-xl font-semibold">
-          {dict.auth.checkEmailTitle}
-        </h1>
-        <p className="text-muted-foreground max-w-xs text-sm">
-          {dict.auth.checkEmailBody}
-        </p>
-        <Link
-          href="/login"
-          className="text-primary inline-flex items-center gap-1.5 text-sm font-medium"
-        >
-          <ArrowLeft aria-hidden className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
-          {dict.auth.backToLogin}
-        </Link>
-      </main>
-    );
-  }
+  if (submitted) return <CheckEmailNotice />;
 
   return (
     <main className="safe-top safe-x safe-bottom flex flex-1 flex-col justify-center gap-6 px-6">
@@ -129,42 +87,11 @@ export default function RegisterPage() {
         </Link>
       </p>
 
-      <dialog
-        ref={takenDialogRef}
-        aria-labelledby="email-taken-title"
-        aria-describedby="email-taken-body"
+      <EmailTakenDialog
+        email={takenEmail}
         onClose={() => setTakenEmail(null)}
-        onClick={(e) => {
-          // Clicking the backdrop (the dialog element itself) closes it.
-          if (e.target === e.currentTarget) e.currentTarget.close();
-        }}
-        className="bg-card text-card-foreground border-border backdrop:bg-foreground/40 m-auto w-[calc(100%-3rem)] max-w-sm rounded-3xl border p-6 text-center shadow-lg"
-      >
-        <div className="bg-primary/10 text-primary mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl">
-          <MailWarning aria-hidden className="h-6 w-6" />
-        </div>
-        <h2 id="email-taken-title" className="text-lg font-semibold">
-          {dict.auth.emailTakenTitle}
-        </h2>
-        <p
-          id="email-taken-body"
-          className="text-muted-foreground mt-2 text-sm break-words"
-        >
-          {interpolate(dict.auth.emailTakenBody, { email: takenEmail ?? "" })}
-        </p>
-        <div className="mt-6 flex flex-col gap-3">
-          <Link
-            href="/login"
-            className="bg-primary text-primary-foreground flex h-12 items-center justify-center gap-2 rounded-2xl px-5 text-base font-medium transition-opacity active:opacity-80"
-          >
-            <LogIn aria-hidden className="h-4 w-4 shrink-0 rtl:-scale-x-100" />
-            {dict.auth.logIn}
-          </Link>
-          <Button type="button" variant="secondary" onClick={chooseDifferentEmail}>
-            {dict.auth.useDifferentEmail}
-          </Button>
-        </div>
-      </dialog>
+        onUseDifferentEmail={() => setFocus("email", { shouldSelect: true })}
+      />
     </main>
   );
 }

@@ -1,0 +1,83 @@
+import type { Dictionary } from "../../types";
+
+export const heCore: Pick<
+  Dictionary,
+  "common" | "nav" | "landing" | "auth" | "validation"
+> = {
+  common: {
+    cancel: "ביטול",
+    save: "שמירה",
+    add: "הוספה",
+    delete: "מחיקה",
+    edit: "עריכה",
+    back: "חזרה",
+    dismiss: "סגירה",
+    loading: "…",
+  },
+  nav: {
+    dashboard: "לוח בקרה",
+    expenses: "הוצאות",
+    plan: "תכנון",
+    settings: "הגדרות",
+  },
+  landing: {
+    tagline: "תכננו ועקבו אחר ההוצאות שלכם בחופשה, בכל עיר ובכל מטבע.",
+    getStarted: "בואו נתחיל",
+    logIn: "התחברות",
+  },
+  auth: {
+    welcomeBack: "ברוך שובך",
+    loginSubtitle: "התחברו לטיולים שלכם.",
+    email: "אימייל",
+    password: "סיסמה",
+    logIn: "התחברות",
+    loggingIn: "התחברות",
+    noAccount: "אין לכם חשבון?",
+    registerLink: "הרשמה",
+    createAccount: "יצירת חשבון",
+    creatingAccount: "יצירת חשבון",
+    registerSubtitle: "התחילו לתכנן את הטיול הבא שלכם.",
+    alreadyHaveAccount: "כבר יש לכם חשבון?",
+    loginLink: "התחברות",
+    checkEmailTitle: "בדקו את תיבת הדואר",
+    checkEmailBody: "שלחנו לכם קישור אישור. פתחו אותו כדי להפעיל את החשבון, ואז התחברו.",
+    backToLogin: "חזרה להתחברות",
+    emailTakenTitle: "האימייל הזה כבר רשום",
+    emailTakenBody:
+      "כבר קיים חשבון עם {email}. התחברו במקום זאת, או הירשמו עם אימייל אחר.",
+    useDifferentEmail: "שימוש באימייל אחר",
+    logOut: "התנתקות",
+  },
+  validation: {
+    emailInvalid: "הזינו כתובת אימייל תקינה",
+    passwordRequired: "יש להזין סיסמה",
+    passwordMin8: "הסיסמה חייבת לכלול לפחות 8 תווים",
+    loginInvalid: "הזינו אימייל וסיסמה תקינים.",
+    genericInvalid: "קלט לא תקין.",
+
+    tripNameRequired: "שם הטיול נדרש",
+    descriptionMax500: "התיאור יכול לכלול עד 500 תווים",
+    destinationRequired: "יעד נדרש",
+    startDateRequired: "תאריך התחלה נדרש",
+    endDateRequired: "תאריך סיום נדרש",
+    currencyChoose: "בחרו מטבע",
+    budgetNegative: "התקציב לא יכול להיות שלילי",
+    endDateBeforeStart: "תאריך הסיום חייב לחול ביום תאריך ההתחלה או לאחריו",
+    tripInvalid: "פרטי הטיול אינם תקינים.",
+
+    amountPositive: "הזינו סכום",
+    exchangeRatePositive: "הזינו שער חליפין תקין",
+    exchangeRateRequired: "הזינו שער חליפין",
+    categoryChoose: "בחרו קטגוריה",
+    descriptionRequired: "יש להזין תיאור",
+    descriptionMax200: "התיאור יכול לכלול עד 200 תווים",
+    dateRequired: "תאריך נדרש",
+    expenseInvalid: "ההוצאה אינה תקינה.",
+
+    categoryNameRequired: "יש להזין שם",
+    categoryInvalid: "שם הקטגוריה אינו תקין.",
+
+    amountNegative: "הסכום לא יכול להיות שלילי",
+    amountInvalid: "סכום לא תקין.",
+  },
+};

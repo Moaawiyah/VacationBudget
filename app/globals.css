@@ -13,6 +13,8 @@
   --background: #efe2d0;
   /* Soft cream glow painted at the top of the page behind content. */
   --background-glow: #f9efe1;
+  /* Strength of the travel line-art behind content (body::before). */
+  --backdrop-opacity: 0.13;
   --foreground: #2b1d14;
   --card: #fdf8f1;
   --card-foreground: #2b1d14;
@@ -41,6 +43,7 @@
   :root:not(.light) {
     --background: #1a140f;
     --background-glow: rgb(220 154 98 / 0.1);
+    --backdrop-opacity: 0.1;
     --foreground: #f3e9dd;
     --card: #261e17;
     --card-foreground: #f3e9dd;
@@ -64,6 +67,7 @@
 :root.dark {
   --background: #1a140f;
   --background-glow: rgb(220 154 98 / 0.1);
+  --backdrop-opacity: 0.1;
   --foreground: #f3e9dd;
   --card: #261e17;
   --card-foreground: #f3e9dd;
@@ -107,10 +111,6 @@
 html {
   /* Fills overscroll / rubber-band areas with the page color. */
   background-color: var(--background);
-}
-
-body {
-  background-color: var(--background);
   /* A fixed-height warm glow at the top — sized in rem so it doesn't stretch
      on long pages, and a single gradient layer so it stays cheap on mobile. */
   background-image: radial-gradient(
@@ -119,8 +119,31 @@ body {
     transparent
   );
   background-repeat: no-repeat;
+}
+
+/* body deliberately has no background of its own, so the travel backdrop
+   below (z-index -1) shows above the html background but under content. */
+body {
   color: var(--foreground);
   overscroll-behavior-y: none;
+}
+
+/* Travel line-art (plane, sun, mountains, sailboat, waves, palm) anchored to
+   the bottom of the screen. public/travel-backdrop.svg is used as a mask so
+   the drawing is tinted with --primary and follows light/dark mode. Fixed, so
+   it stays put while pages scroll; cards are opaque, so text on them is
+   unaffected. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--primary);
+  opacity: var(--backdrop-opacity);
+  -webkit-mask: url("/travel-backdrop.svg") center bottom / min(100%, 36rem) auto
+    no-repeat;
+  mask: url("/travel-backdrop.svg") center bottom / min(100%, 36rem) auto no-repeat;
 }
 
 ::selection {

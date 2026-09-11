@@ -110,6 +110,18 @@ npm run format       # Prettier (writes)
 npm run format:check # Prettier (check only)
 ```
 
+## Helper scripts
+
+`scripts/` holds one-off helper and admin scripts, written in TypeScript and run with
+npm — no separate toolchain. Node runs `.ts` files directly (type stripping), and
+`npm run script` loads `.env.local` first so scripts can read the Supabase variables.
+They're linted and type-checked with the rest of the repo, but never bundled into the
+app or the Docker image.
+
+```bash
+npm run script -- scripts/hello.ts   # run a script with .env.local loaded
+```
+
 ## Running tests
 
 Not yet implemented — planned for the calculation functions in `lib/calculations/`

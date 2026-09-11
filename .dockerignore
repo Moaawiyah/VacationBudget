@@ -23,3 +23,4 @@ compose.yaml
 compose.yml
 .dockerignore
 README.md
+scripts

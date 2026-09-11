@@ -41,6 +41,10 @@ const en = {
     checkEmailBody:
       "We sent you a confirmation link. Open it to activate your account, then log in.",
     backToLogin: "Back to login",
+    emailTakenTitle: "This email is already registered",
+    emailTakenBody:
+      "An account with {email} already exists. Log in instead, or register with a different email.",
+    useDifferentEmail: "Use a different email",
     logOut: "Log out",
   },
   validation: {
@@ -99,13 +103,13 @@ const en = {
     destinationSearch: "Search countries",
     destinationNoResults: "No countries found",
     destinationClose: "Close",
+    destinationSelectedCount: "{count} selected",
+    destinationClear: "Clear",
+    destinationDone: "Done",
     startDate: "Start date",
     endDate: "End date",
     currency: "Currency",
     totalBudget: "Total budget",
-    destinationSelectedCount: "{count} selected",
-    destinationClear: "Clear",
-    destinationDone: "Done",
     descriptionOptional: "Description (optional)",
     createTrip: "Create trip",
     saveChanges: "Save changes",

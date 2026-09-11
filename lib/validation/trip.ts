@@ -12,7 +12,8 @@ export function tripSchema(t: Dictionary["validation"]) {
         .max(500, t.descriptionMax500)
         .optional()
         .or(z.literal("")),
-      destination: z.string().trim().min(1, t.destinationRequired).max(200),
+      // Room for a comma-separated list of every country (see lib/countries.ts).
+      destination: z.string().trim().min(1, t.destinationRequired).max(5000),
       start_date: z.string().min(1, t.startDateRequired),
       end_date: z.string().min(1, t.endDateRequired),
       base_currency: z.enum(CURRENCY_CODES, { message: t.currencyChoose }),

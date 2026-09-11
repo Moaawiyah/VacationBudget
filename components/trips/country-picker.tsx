@@ -13,18 +13,21 @@ import { createPortal } from "react-dom";
 import { Check, ChevronDown, Globe, Search, X } from "lucide-react";
 import { useDictionary, useLocale } from "@/components/i18n/locale-provider";
 import {
-  countryStorageValue,
-  findCountry,
-  getCountries,
-  getDestinationDisplay,
+  destinationStorageValue,
+  formatDestination,
+  getDestinationParts,
   normalizeForSearch,
+  parseDestination,
   type Country,
+  type CountryCode,
+  getCountries,
 } from "@/lib/countries";
+import { interpolate } from "@/lib/i18n/interpolate";
 import { cn } from "@/lib/utils";
 
 type CountryPickerProps = {
   label: string;
-  /** Stored destination: an English country name, or legacy free text. */
+  /** Stored destination: comma-separated English country names, or legacy free text. */
   value: string | undefined;
   onChange: (value: string) => void;
   onBlur?: () => void;
@@ -33,10 +36,12 @@ type CountryPickerProps = {
 };
 
 /**
- * Searchable country picker styled like <Input>. The trigger opens a bottom
- * sheet with an autofocused search box and a listbox of "🇫🇷 France" rows.
- * Emits the country's English name (see lib/countries.ts). A value that
- * isn't a known country (legacy free text) is shown as-is until replaced.
+ * Searchable multi-country picker styled like <Input>. The trigger opens a
+ * bottom sheet with an autofocused search box and a listbox of checkbox rows
+ * ("☑ 🇫🇷 France"); tapping a row toggles it and keeps the sheet open.
+ * Emits the picked countries' English names (see lib/countries.ts). A value
+ * that isn't a list of known countries (legacy free text) is shown as-is
+ * until the first country is picked.
  */
 export const CountryPicker = forwardRef<HTMLButtonElement, CountryPickerProps>(
   function CountryPicker({ label, value, onChange, onBlur, name, error }, ref) {
@@ -55,8 +60,9 @@ export const CountryPicker = forwardRef<HTMLButtonElement, CountryPickerProps>(
     const searchRef = useRef<HTMLInputElement | null>(null);
 
     const countries = useMemo(() => getCountries(bcp47), [bcp47]);
-    const selectedCode = findCountry(value);
-    const display = value ? getDestinationDisplay(value, bcp47) : null;
+    const selectedCodes = useMemo(() => parseDestination(value), [value]);
+    const parts = value ? getDestinationParts(value, bcp47) : [];
+    const leadingFlag = parts[0]?.flag;
 
     const filtered = useMemo(() => {
       const q = normalizeForSearch(query);
@@ -78,7 +84,8 @@ export const CountryPicker = forwardRef<HTMLButtonElement, CountryPickerProps>(
 
     function openPicker() {
       setQuery("");
-      const idx = selectedCode ? countries.findIndex((c) => c.code === selectedCode) : 0;
+      const first = selectedCodes[0];
+      const idx = first ? countries.findIndex((c) => c.code === first) : 0;
       setActiveIndex(Math.max(0, idx));
       setOpen(true);
     }
@@ -89,9 +96,13 @@ export const CountryPicker = forwardRef<HTMLButtonElement, CountryPickerProps>(
       triggerRef.current?.focus();
     }
 
-    function select(country: Country) {
-      onChange(countryStorageValue(country.code));
-      closePicker();
+    // Selection order is kept (it reads like an itinerary). A legacy
+    // free-text value parses to [], so the first pick replaces it.
+    function toggle(code: CountryCode) {
+      const next = selectedCodes.includes(code)
+        ? selectedCodes.filter((c) => c !== code)
+        : [...selectedCodes, code];
+      onChange(destinationStorageValue(next));
     }
 
     // Focus search + lock background scroll while the sheet is open.
@@ -127,13 +138,15 @@ export const CountryPicker = forwardRef<HTMLButtonElement, CountryPickerProps>(
       } else if (e.key === "Enter") {
         // Never let Enter here submit the surrounding form.
         e.preventDefault();
-        if (activeCountry) select(activeCountry);
+        if (activeCountry) toggle(activeCountry.code);
       } else if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
         closePicker();
       }
     }
+
+    const selectedCount = selectedCodes.length;
 
     const sheet = open
       ? createPortal(
@@ -159,14 +172,21 @@ export const CountryPicker = forwardRef<HTMLButtonElement, CountryPickerProps>(
               className="bg-card text-card-foreground safe-bottom border-border relative flex h-[min(85dvh,40rem)] w-full max-w-md flex-col rounded-t-3xl border-t shadow-lg"
             >
               <div className="flex items-center justify-between gap-3 px-5 pt-4 pb-3">
-                <h2 id={`${baseId}-title`} className="text-base font-semibold">
-                  {label}
-                </h2>
+                <div className="min-w-0">
+                  <h2 id={`${baseId}-title`} className="text-base font-semibold">
+                    {label}
+                  </h2>
+                  <p aria-live="polite" className="text-muted-foreground text-xs">
+                    {interpolate(dict.tripForm.destinationSelectedCount, {
+                      count: selectedCount,
+                    })}
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={closePicker}
                   aria-label={dict.tripForm.destinationClose}
-                  className="text-muted-foreground bg-muted flex h-8 w-8 items-center justify-center rounded-full transition-opacity active:opacity-60"
+                  className="text-muted-foreground bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-opacity active:opacity-60"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -203,11 +223,12 @@ export const CountryPicker = forwardRef<HTMLButtonElement, CountryPickerProps>(
               <ul
                 id={listId}
                 role="listbox"
+                aria-multiselectable="true"
                 aria-labelledby={labelId}
                 className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-3"
               >
                 {filtered.map((country, i) => {
-                  const selected = country.code === selectedCode;
+                  const selected = selectedCodes.includes(country.code);
                   const active = i === activeIndex;
                   return (
                     <li
@@ -215,21 +236,32 @@ export const CountryPicker = forwardRef<HTMLButtonElement, CountryPickerProps>(
                       id={optionId(country.code)}
                       role="option"
                       aria-selected={selected}
-                      onClick={() => select(country)}
+                      onClick={() => toggle(country.code)}
                       onMouseMove={() => {
                         if (!active) setActiveIndex(i);
                       }}
                       className={cn(
-                        "flex h-12 cursor-pointer items-center gap-3 rounded-xl px-3 text-base",
+                        "flex h-12 cursor-pointer items-center gap-3 rounded-xl px-3 text-base select-none",
                         active && "bg-muted",
-                        selected && "text-primary font-medium",
+                        selected && "font-medium",
                       )}
                     >
+                      {/* Visual checkbox; the option's aria-selected carries the state. */}
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors",
+                          selected
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-muted-foreground/60 bg-card",
+                        )}
+                      >
+                        {selected && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+                      </span>
                       <span aria-hidden className="text-xl leading-none">
                         {country.flag}
                       </span>
                       <span className="min-w-0 flex-1 truncate">{country.name}</span>
-                      {selected && <Check className="text-primary h-4 w-4 shrink-0" />}
                     </li>
                   );
                 })}
@@ -242,6 +274,30 @@ export const CountryPicker = forwardRef<HTMLButtonElement, CountryPickerProps>(
                   </li>
                 )}
               </ul>
+
+              <div className="border-border flex gap-3 border-t px-5 pt-3 pb-4">
+                <button
+                  type="button"
+                  onClick={() => onChange("")}
+                  disabled={selectedCount === 0}
+                  className="bg-muted text-foreground flex h-12 items-center justify-center rounded-2xl px-5 text-base font-medium transition-opacity active:opacity-70 disabled:pointer-events-none disabled:opacity-50"
+                >
+                  {dict.tripForm.destinationClear}
+                </button>
+                <button
+                  type="button"
+                  onClick={closePicker}
+                  className="bg-primary text-primary-foreground flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl px-5 text-base font-medium transition-opacity active:opacity-80"
+                >
+                  <Check aria-hidden className="h-4 w-4" />
+                  {dict.tripForm.destinationDone}
+                  {selectedCount > 0 && (
+                    <span className="bg-primary-foreground/20 rounded-full px-2 text-sm tabular-nums">
+                      {selectedCount}
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
           </div>,
           document.body,
@@ -275,19 +331,23 @@ export const CountryPicker = forwardRef<HTMLButtonElement, CountryPickerProps>(
             error && "border-danger",
           )}
         >
-          {display?.flag ? (
-            <span aria-hidden className="text-xl leading-none">
-              {display.flag}
-            </span>
-          ) : (
-            <Globe className="text-muted-foreground h-4 w-4 shrink-0" />
-          )}
+          {!leadingFlag && <Globe className="text-muted-foreground h-4 w-4 shrink-0" />}
           <span
             suppressHydrationWarning
-            className={cn("min-w-0 flex-1 truncate", !display && "text-muted-foreground")}
+            className={cn(
+              "min-w-0 flex-1 truncate",
+              parts.length === 0 && "text-muted-foreground",
+            )}
           >
-            {display ? display.name : dict.tripForm.destinationPlaceholder}
+            {parts.length > 0
+              ? formatDestination(value ?? "", bcp47)
+              : dict.tripForm.destinationPlaceholder}
           </span>
+          {selectedCount > 1 && (
+            <span className="bg-muted text-muted-foreground shrink-0 rounded-full px-2 py-0.5 text-xs font-medium tabular-nums">
+              {selectedCount}
+            </span>
+          )}
           <ChevronDown className="text-muted-foreground h-4 w-4 shrink-0" />
         </button>
         {error && (

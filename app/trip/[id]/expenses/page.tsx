@@ -1,20 +1,19 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Receipt } from "lucide-react";
-import { getTrip } from "@/lib/data/trips";
-import { getCategories } from "@/lib/data/categories";
-import { getExpensesForTrip } from "@/lib/data/expenses";
+import { getSdk } from "@/lib/sdk/server";
 import { getDictionary } from "@/lib/i18n/server";
 import { ExpenseList } from "@/components/expenses/expense-list";
 import { ExpenseSavedToast } from "@/components/expenses/expense-saved-toast";
 
 export default async function ExpensesPage({ params }: PageProps<"/trip/[id]/expenses">) {
   const { id } = await params;
+  const sdk = await getSdk();
 
   const [trip, categories, expenses, dict] = await Promise.all([
-    getTrip(id),
-    getCategories(),
-    getExpensesForTrip(id),
+    sdk.trips.get(id),
+    sdk.categories.list(),
+    sdk.expenses.listForTrip(id),
     getDictionary(),
   ]);
 

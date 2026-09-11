@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
+import { AuthService } from "@/lib/sdk/auth-service";
 
 const PUBLIC_PATHS = ["/login", "/register", "/auth"];
 
@@ -33,9 +34,7 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await new AuthService(supabase).getUser();
 
   const path = request.nextUrl.pathname;
   const isPublicPath = PUBLIC_PATHS.some((p) => path === p || path.startsWith(`${p}/`));

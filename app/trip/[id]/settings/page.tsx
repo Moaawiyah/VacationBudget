@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Info, Pencil, Settings } from "lucide-react";
-import { getTrip } from "@/lib/data/trips";
 import { notFound } from "next/navigation";
+import { getSdk } from "@/lib/sdk/server";
 import { getDictionary } from "@/lib/i18n/server";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/settings/language-switcher";
@@ -11,7 +11,8 @@ export default async function TripSettingsPage({
   params,
 }: PageProps<"/trip/[id]/settings">) {
   const { id } = await params;
-  const [trip, dict] = await Promise.all([getTrip(id), getDictionary()]);
+  const sdk = await getSdk();
+  const [trip, dict] = await Promise.all([sdk.trips.get(id), getDictionary()]);
   if (!trip) notFound();
 
   return (

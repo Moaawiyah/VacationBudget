@@ -1,21 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { getSdk } from "@/lib/sdk/server";
 import { getDictionary } from "@/lib/i18n/server";
-import { toTrip } from "@/types/trip";
 import { EditTripForm } from "@/components/trips/edit-trip-form";
 
 export default async function EditTripPage({ params }: PageProps<"/trips/[id]/edit">) {
   const { id } = await params;
-  const supabase = await createClient();
-  const dict = await getDictionary();
+  const sdk = await getSdk();
+  const [trip, dict] = await Promise.all([sdk.trips.get(id), getDictionary()]);
 
-  const { data: row } = await supabase.from("trips").select("*").eq("id", id).single();
-
-  if (!row) notFound();
-
-  const trip = toTrip(row);
+  if (!trip) notFound();
 
   return (
     <main className="safe-top safe-x safe-bottom flex flex-1 flex-col gap-6 p-6">

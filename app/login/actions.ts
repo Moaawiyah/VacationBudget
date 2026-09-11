@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getSdk } from "@/lib/sdk/server";
 import { getDictionary } from "@/lib/i18n/server";
 import { loginSchema, type LoginInput } from "@/lib/validation/auth";
 
@@ -12,11 +12,10 @@ export async function login(input: LoginInput): Promise<{ error: string } | neve
     return { error: dict.validation.loginInvalid };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
-
+  const sdk = await getSdk();
+  const { error } = await sdk.auth.signIn(parsed.data.email, parsed.data.password);
   if (error) {
-    return { error: error.message };
+    return { error };
   }
 
   redirect("/trips");

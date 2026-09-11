@@ -1,8 +1,5 @@
 import { notFound } from "next/navigation";
-import { getTrip } from "@/lib/data/trips";
-import { getCategories } from "@/lib/data/categories";
-import { getExpensesForTrip } from "@/lib/data/expenses";
-import { getPlannedBudgetsForTrip } from "@/lib/data/planned-budgets";
+import { getSdk } from "@/lib/sdk/server";
 import { getDictionary } from "@/lib/i18n/server";
 import { translateCategoryName } from "@/lib/i18n/category-names";
 import { calculateTripStatus } from "@/lib/calculations/trip";
@@ -24,11 +21,12 @@ export default async function TripDashboardPage({
   params,
 }: PageProps<"/trip/[id]/dashboard">) {
   const { id } = await params;
+  const sdk = await getSdk();
   const [trip, categories, expenses, plannedBudgets, dict] = await Promise.all([
-    getTrip(id),
-    getCategories(),
-    getExpensesForTrip(id),
-    getPlannedBudgetsForTrip(id),
+    sdk.trips.get(id),
+    sdk.categories.list(),
+    sdk.expenses.listForTrip(id),
+    sdk.plannedBudgets.listForTrip(id),
     getDictionary(),
   ]);
 

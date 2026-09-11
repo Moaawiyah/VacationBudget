@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { ReceiptText } from "lucide-react";
-import { getTrip } from "@/lib/data/trips";
-import { getCategories } from "@/lib/data/categories";
+import { getSdk } from "@/lib/sdk/server";
 import { getDictionary } from "@/lib/i18n/server";
 import { NewExpenseForm } from "@/components/expenses/new-expense-form";
 
@@ -9,9 +8,10 @@ export default async function NewExpensePage({
   params,
 }: PageProps<"/trip/[id]/expenses/new">) {
   const { id } = await params;
+  const sdk = await getSdk();
   const [trip, categories, dict] = await Promise.all([
-    getTrip(id),
-    getCategories(),
+    sdk.trips.get(id),
+    sdk.categories.list(),
     getDictionary(),
   ]);
 

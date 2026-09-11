@@ -1,50 +1,20 @@
 import Link from "next/link";
 import { Plus, Plane, Settings } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/sdk/server";
 import { getDictionary } from "@/lib/i18n/server";
-import { toTrip } from "@/types/trip";
 import { TripCard } from "@/components/trips/trip-card";
 import { LogoutButton } from "@/components/navigation/logout-button";
 
 export default async function TripsPage() {
-  const [supabase, dict] = await Promise.all([createClient(), getDictionary()]);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: rows } = await supabase
-    .from("trips")
-    .select("*")
-    .eq("user_id", user!.id)
-    .order("start_date", { ascending: true });
-
-  const trips = (rows ?? []).map(toTrip);
-
-  // One extra query for every trip's total spend, instead of one query per
-  // card (which would be an N+1 query as the trip list grows).
-  const tripIds = trips.map((trip) => trip.id);
-  const { data: expenseRows } =
-    tripIds.length > 0
-      ? await supabase
-          .from("expenses")
-          .select("trip_id, converted_amount")
-          .in("trip_id", tripIds)
-      : { data: [] };
-
-  const spentByTrip = new Map<string, number>();
-  for (const row of expenseRows ?? []) {
-    spentByTrip.set(
-      row.trip_id,
-      (spentByTrip.get(row.trip_id) ?? 0) + Number(row.converted_amount),
-    );
-  }
+  const [{ sdk, user }, dict] = await Promise.all([requireUser(), getDictionary()]);
+  const trips = await sdk.trips.listWithSpent(user.id);
 
   return (
     <main className="safe-top safe-x safe-bottom flex flex-1 flex-col gap-6 p-6">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-foreground text-2xl font-semibold">{dict.trips.title}</h1>
-          <p className="text-muted-foreground mt-1 text-sm">{user?.email}</p>
+          <p className="text-muted-foreground mt-1 text-sm">{user.email}</p>
         </div>
         <div className="flex items-center gap-2">
           <Link
@@ -78,8 +48,8 @@ export default async function TripsPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {trips.map((trip) => (
-            <TripCard key={trip.id} trip={trip} spent={spentByTrip.get(trip.id) ?? 0} />
+          {trips.map(({ trip, spent }) => (
+            <TripCard key={trip.id} trip={trip} spent={spent} />
           ))}
         </div>
       )}

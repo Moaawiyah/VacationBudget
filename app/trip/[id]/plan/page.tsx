@@ -1,9 +1,6 @@
 import { notFound } from "next/navigation";
 import { ClipboardList } from "lucide-react";
-import { getTrip } from "@/lib/data/trips";
-import { getCategories } from "@/lib/data/categories";
-import { getExpensesForTrip } from "@/lib/data/expenses";
-import { getPlannedBudgetsForTrip } from "@/lib/data/planned-budgets";
+import { getSdk } from "@/lib/sdk/server";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { LOCALE_BCP47 } from "@/lib/i18n/config";
 import { translateCategoryName } from "@/lib/i18n/category-names";
@@ -15,11 +12,12 @@ import { cn } from "@/lib/utils";
 
 export default async function TripPlanPage({ params }: PageProps<"/trip/[id]/plan">) {
   const { id } = await params;
+  const sdk = await getSdk();
   const [trip, categories, expenses, plannedBudgets, dict, locale] = await Promise.all([
-    getTrip(id),
-    getCategories(),
-    getExpensesForTrip(id),
-    getPlannedBudgetsForTrip(id),
+    sdk.trips.get(id),
+    sdk.categories.list(),
+    sdk.expenses.listForTrip(id),
+    sdk.plannedBudgets.listForTrip(id),
     getDictionary(),
     getLocale(),
   ]);

@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plane } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { getSdk } from "@/lib/sdk/server";
 import { getDictionary } from "@/lib/i18n/server";
 import { Button } from "@/components/ui/button";
 
 export default async function Home() {
-  const [supabase, dict] = await Promise.all([createClient(), getDictionary()]);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [sdk, dict] = await Promise.all([getSdk(), getDictionary()]);
+  const user = await sdk.auth.getUser();
 
   if (user) {
     redirect("/trips");

@@ -14,6 +14,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# This project has no public/ directory by default; ensure it exists so the
+# runtime stage's COPY --from=builder /app/public ./public never fails.
+RUN mkdir -p ./public
+
 # NEXT_PUBLIC_* values are inlined into the client bundle at build time, so
 # they must be supplied as build args, not just runtime env vars.
 ARG NEXT_PUBLIC_SUPABASE_URL

@@ -53,6 +53,7 @@ export const arCore: Pick<
     passwordRequired: "كلمة المرور مطلوبة",
     passwordMin8: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
     loginInvalid: "أدخل بريدًا إلكترونيًا وكلمة مرور صحيحين.",
+    tooManyAttempts: "محاولات كثيرة جدًا. انتظر دقيقة ثم حاول مرة أخرى.",
     genericInvalid: "إدخال غير صالح.",
 
     tripNameRequired: "اسم الرحلة مطلوب",

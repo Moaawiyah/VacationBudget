@@ -27,15 +27,24 @@ class AnalyzeRequest:
 
 class ReceiptPipeline:
     def __init__(
-        self, ocr_service: OcrService, llm_provider: LLMProvider, max_upload_bytes: int
+        self,
+        ocr_service: OcrService,
+        llm_provider: LLMProvider,
+        max_upload_bytes: int,
+        max_image_pixels: int,
     ) -> None:
         self._ocr = ocr_service
         self._llm = llm_provider
         self._max_upload_bytes = max_upload_bytes
+        self._max_image_pixels = max_image_pixels
 
     async def analyze(self, request: AnalyzeRequest) -> ExtractedReceipt:
         image = validate_upload(
-            request.filename, request.content_type, request.data, self._max_upload_bytes
+            request.filename,
+            request.content_type,
+            request.data,
+            self._max_upload_bytes,
+            self._max_image_pixels,
         )
         prepared = preprocess_receipt(image)
         ocr_result = self._ocr.recognize(prepared, request.language_hint or "en")

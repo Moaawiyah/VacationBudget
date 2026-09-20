@@ -30,7 +30,11 @@ def _extension_of(filename: str) -> str:
 
 
 def validate_upload(
-    filename: str, content_type: str | None, data: bytes, max_bytes: int
+    filename: str,
+    content_type: str | None,
+    data: bytes,
+    max_bytes: int,
+    max_pixels: int = 50_000_000,
 ) -> Image.Image:
     """Returns the decoded, verified image, or raises UploadValidationError."""
     if not data:
@@ -49,10 +53,20 @@ def validate_upload(
 
     try:
         image = Image.open(io.BytesIO(data))
+        # Resolution check happens before any pixel is decoded: the header
+        # already states width/height, so a decompression bomb is refused
+        # without ever allocating its bitmap. Kept below PIL's own
+        # MAX_IMAGE_PIXELS so the explicit check always fires first.
+        if image.width * image.height > max_pixels:
+            raise UploadValidationError("Image resolution is too high")
         image.verify()  # Detects truncated/corrupt files; consumes the handle.
         image = Image.open(io.BytesIO(data))  # Re-open: verify() leaves it unusable.
         image.load()
-    except (UnidentifiedImageError, OSError, ValueError) as exc:
+    except UploadValidationError:
+        # Re-raise as-is (e.g. the resolution message) — it subclasses
+        # ValueError, so the generic handler below would otherwise swallow it.
+        raise
+    except (UnidentifiedImageError, Image.DecompressionBombError, OSError, ValueError) as exc:
         raise UploadValidationError("File is not a valid image") from exc
 
     return image.convert("RGB")

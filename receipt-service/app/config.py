@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     allowed_origins: str = ""
 
     max_upload_mb: int = 15
+    # Hard cap on decoded image resolution (width * height). A 15MB PNG can
+    # otherwise decompress to hundreds of MB of pixels, and OpenCV/Paddle
+    # copy that bitmap several times — an easy memory-exhaustion vector.
+    max_image_megapixels: int = 50
     log_level: str = "info"
 
     @property

@@ -27,6 +27,7 @@ def _override_pipeline():
         ocr_service=StubOcrService(),
         llm_provider=StubLLMProvider(),
         max_upload_bytes=1_000_000,
+        max_image_pixels=10_000_000,
     )
 
 

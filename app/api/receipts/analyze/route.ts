@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { analyzeReceipt } from "@/lib/receipts/receipt-client";
+import { rateLimit } from "@/lib/rate-limit";
 import { getSdk } from "@/lib/sdk/server";
 
 export const runtime = "nodejs";
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/heic", "image/heif"]);
 const MAX_BYTES = 15 * 1024 * 1024;
+// Every call runs OCR plus a paid LLM request, so cap each user's usage.
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 60_000;
 
 /**
  * Authenticates the caller and checks trip ownership itself (rather than
@@ -16,6 +20,18 @@ export async function POST(request: Request) {
   const sdk = await getSdk();
   const user = await sdk.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { allowed, retryAfterSeconds } = rateLimit(
+    `receipts:${user.id}`,
+    RATE_LIMIT,
+    RATE_WINDOW_MS,
+  );
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(retryAfterSeconds) } },
+    );
+  }
 
   const formData = await request.formData();
   const tripId = formData.get("tripId");

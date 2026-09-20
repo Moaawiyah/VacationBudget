@@ -53,6 +53,7 @@ export const heCore: Pick<
     passwordRequired: "יש להזין סיסמה",
     passwordMin8: "הסיסמה חייבת לכלול לפחות 8 תווים",
     loginInvalid: "הזינו אימייל וסיסמה תקינים.",
+    tooManyAttempts: "יותר מדי ניסיונות. המתינו דקה ונסו שוב.",
     genericInvalid: "קלט לא תקין.",
 
     tripNameRequired: "שם הטיול נדרש",

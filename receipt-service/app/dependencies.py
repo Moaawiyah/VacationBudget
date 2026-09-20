@@ -22,4 +22,5 @@ def get_pipeline() -> ReceiptPipeline:
         ocr_service=OcrService(),
         llm_provider=provider,
         max_upload_bytes=settings.max_upload_mb * 1024 * 1024,
+        max_image_pixels=settings.max_image_megapixels * 1_000_000,
     )

@@ -28,6 +28,21 @@ def test_oversized_file_is_rejected():
         validate_upload("receipt.png", "image/png", _png_bytes(), max_bytes=10)
 
 
+def test_image_exceeding_pixel_cap_is_rejected_before_decoding():
+    """The resolution check reads only the PNG header, so a decompression
+    bomb is refused without its bitmap ever being allocated."""
+    bomb = _png_bytes(size=(4000, 4000))  # 16 MP > the 300-pixel cap below
+    with pytest.raises(UploadValidationError, match="resolution"):
+        validate_upload("receipt.png", "image/png", bomb, max_bytes=10_000_000, max_pixels=300)
+
+
+def test_image_within_pixel_cap_is_accepted():
+    image = validate_upload(
+        "receipt.png", "image/png", _png_bytes(size=(30, 30)), max_bytes=10_000, max_pixels=900
+    )
+    assert image.size == (30, 30)
+
+
 def test_unsupported_extension_and_content_type_is_rejected():
     with pytest.raises(UploadValidationError):
         validate_upload("receipt.pdf", "application/pdf", b"%PDF-1.4", max_bytes=10_000)

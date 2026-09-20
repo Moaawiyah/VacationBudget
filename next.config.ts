@@ -1,5 +1,26 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
+// Security headers applied to every response. The CSP allows 'unsafe-inline'
+// scripts/styles because Next.js inlines hydration data in <script> tags and
+// Tailwind injects styles — a per-request nonce would forbid that unless every
+// page is dynamically rendered (see the CSP guide in node_modules/next/dist/docs).
+// External script/style/font loading is still fully blocked.
+const cspHeader = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' blob: data:",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
+
 const nextConfig: NextConfig = {
   // Produces a self-contained server bundle (.next/standalone) — this is what
   // lets Railway run `node server.js` instead of needing a full npm install at
@@ -20,6 +41,27 @@ const nextConfig: NextConfig = {
     // Doesn't help a cold load with zero prior connectivity (that needs a
     // service worker); see the note where <OfflineBanner> is used.
     useOffline: true,
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "Content-Security-Policy", value: cspHeader },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains",
+          },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+          },
+        ],
+      },
+    ];
   },
 };
 

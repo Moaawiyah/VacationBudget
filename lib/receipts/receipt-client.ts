@@ -42,6 +42,9 @@ export async function analyzeReceipt(
     });
     if (!response.ok) {
       logger.error("receipts.analyze failed", { status: response.status });
+      if (response.status === 429) {
+        return { error: "Too many receipts scanned. Wait a moment and try again." };
+      }
       return { error: "Could not read that receipt. Try a clearer photo." };
     }
 

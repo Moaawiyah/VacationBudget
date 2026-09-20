@@ -26,6 +26,7 @@ export default defineConfig({
         "lib/sdk/server.ts",
         "lib/i18n/server.ts",
         "lib/i18n/types.ts",
+        "lib/client-ip.ts",
       ],
       reporter: ["text", "text-summary"],
       thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },

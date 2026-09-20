@@ -49,6 +49,7 @@ export const enCore = {
     passwordRequired: "Password is required",
     passwordMin8: "Password must be at least 8 characters",
     loginInvalid: "Enter a valid email and password.",
+    tooManyAttempts: "Too many attempts. Please wait a minute and try again.",
     genericInvalid: "Invalid input.",
 
     tripNameRequired: "Trip name is required",

@@ -18,17 +18,19 @@ ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
-COPY app ./app
-RUN uv sync --frozen --no-dev
-
-# Pre-download every PaddleOCR language model into the image at build time.
-# The container's filesystem is ephemeral, so without this, the first
-# request after every deploy pays for a multi-hundred-MB model download
+# Pre-download every PaddleOCR language model into the image at build time,
+# before COPY app: the container's filesystem is ephemeral, so without this
+# the first request after every deploy pays for a multi-hundred-MB download
 # from paddleocr.bj.bcebos.com — easily blowing past the client's request
-# timeout. See app/ocr/languages.py for the language list this must match.
+# timeout. Placing it before `COPY app ./app` means an app code change
+# (frequent) never invalidates this layer — only a dependency change
+# (rare) does. See app/ocr/languages.py for the language list this must match.
 RUN uv run python -c "\
 from paddleocr import PaddleOCR; \
 [PaddleOCR(lang=lang, use_angle_cls=True, show_log=False) for lang in ('en', 'it', 'german', 'french', 'ar')]"
+
+COPY app ./app
+RUN uv sync --frozen --no-dev
 
 EXPOSE 8000
 CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

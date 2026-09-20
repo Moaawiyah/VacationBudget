@@ -29,6 +29,7 @@ class RawLineItem(BaseModel):
     quantity: float | None = None
     unit_price: float | None = None
     total_price: float | None = None
+    icon: str | None = None
 
 
 class RawExtraction(BaseModel):

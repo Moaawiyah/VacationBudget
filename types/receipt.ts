@@ -1,6 +1,8 @@
 /** Mirrors receipt-service's ExtractedReceipt (receipt-service/app/models/receipt.py). */
 export type ReceiptLineItem = {
   description: string;
+  /** A single emoji depicting the item, or "•" when none was determined. */
+  icon: string;
   quantity: number | null;
   unit_price: number | null;
   total_price: number | null;

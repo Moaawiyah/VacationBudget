@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { mapReceiptToExpenseDefaults } from "@/lib/receipts/map-to-expense";
+import { NOTES_MAX_LENGTH } from "@/lib/validation/expense";
 import type { ExtractedReceipt } from "@/types/receipt";
 
 function receipt(overrides: Partial<ExtractedReceipt> = {}): ExtractedReceipt {
@@ -56,13 +57,45 @@ describe("mapReceiptToExpenseDefaults", () => {
       receipt({
         subtotal: 10,
         tax: 1,
-        line_items: [{ description: "Coffee", quantity: 1, unit_price: 3, total_price: 3 }],
+        line_items: [
+          { description: "Coffee", icon: "☕", quantity: 1, unit_price: 3, total_price: 3 },
+        ],
       }),
       "EUR",
     );
     expect(defaults.notes).toContain("Subtotal: 10");
     expect(defaults.notes).toContain("Tax/VAT: 1");
-    expect(defaults.notes).toContain("- Coffee (3)");
+    expect(defaults.notes).toContain("☕ Coffee — 3");
+  });
+
+  it("shows each item's icon and includes quantity only when it isn't 1", () => {
+    const defaults = mapReceiptToExpenseDefaults(
+      receipt({
+        line_items: [
+          { description: "Espresso", icon: "☕", quantity: 2, unit_price: 2.5, total_price: 5 },
+          { description: "Bus ticket", icon: "🚌", quantity: 1, unit_price: 2, total_price: 2 },
+        ],
+      }),
+      "EUR",
+    );
+    expect(defaults.notes).toContain("☕ 2 × Espresso — 5");
+    expect(defaults.notes).toContain("🚌 Bus ticket — 2");
+  });
+
+  it("keeps notes within the length the expense form accepts", () => {
+    const manyItems = Array.from({ length: 100 }, (_, i) => ({
+      description: `A fairly long item description number ${i}`,
+      icon: "🛒",
+      quantity: 1,
+      unit_price: 9.99,
+      total_price: 9.99,
+    }));
+    const defaults = mapReceiptToExpenseDefaults(
+      receipt({ line_items: manyItems, subtotal: 999, tax: 99 }),
+      "EUR",
+    );
+    expect(defaults.notes!.length).toBeLessThanOrEqual(NOTES_MAX_LENGTH);
+    expect(defaults.notes).toContain("more");
   });
 
   it("includes the translation only when the receipt isn't already English", () => {
@@ -81,6 +114,15 @@ describe("mapReceiptToExpenseDefaults", () => {
 
   it("leaves notes unset when there is nothing to compose", () => {
     expect(mapReceiptToExpenseDefaults(receipt(), "EUR").notes).toBeUndefined();
+  });
+
+  it("keeps the subtotal detail when a huge translation blows the limit", () => {
+    const defaults = mapReceiptToExpenseDefaults(
+      receipt({ subtotal: 10, tax: 1, detected_language: "it", translation: "x".repeat(5000) }),
+      "EUR",
+    );
+    expect(defaults.notes!.length).toBeLessThanOrEqual(NOTES_MAX_LENGTH);
+    expect(defaults.notes).toContain("Subtotal: 10");
   });
 
   it("resolves a suggested category name to that category's id", () => {

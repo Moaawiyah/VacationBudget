@@ -117,3 +117,16 @@ def test_confidence_never_goes_below_zero():
     raw = RawExtraction(uncertain_fields=[f"field{i}" for i in range(50)])
     receipt = validate_extraction(raw, "", ["llm_unavailable"])
     assert receipt.confidence == 0.0
+
+
+def test_line_item_icons_are_sanitised_not_trusted():
+    raw = RawExtraction(
+        total=10.0,
+        line_items=[
+            RawLineItem(description="Espresso", icon="☕"),
+            RawLineItem(description="Suspicious", icon="<script>"),
+        ],
+    )
+    receipt = validate_extraction(raw, "", [])
+    assert receipt.line_items[0].icon == "☕"
+    assert receipt.line_items[1].icon == "•"

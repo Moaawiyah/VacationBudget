@@ -1,5 +1,6 @@
+import { NOTES_MAX_LENGTH } from "@/lib/validation/expense";
 import type { Category } from "@/types/category";
-import type { ExtractedReceipt } from "@/types/receipt";
+import type { ExtractedReceipt, ReceiptLineItem } from "@/types/receipt";
 
 export type ReceiptExpenseDefaults = {
   amount?: number;
@@ -11,33 +12,52 @@ export type ReceiptExpenseDefaults = {
   notes?: string;
 };
 
-/**
- * The Expense model has no tax/line-item columns of its own (see
- * lib/sdk/expense-service.ts) — rather than extending it for this one
- * feature, that detail is folded into the (editable) notes field the
- * existing expense form already has.
- */
-function composeNotes(receipt: ExtractedReceipt): string | undefined {
+/** "☕ 2 × Espresso — 5.00", dropping whatever the receipt didn't give us. */
+function formatLineItem(item: ReceiptLineItem): string {
+  const quantity = item.quantity != null && item.quantity !== 1 ? `${item.quantity} × ` : "";
+  const price = item.total_price != null ? ` — ${item.total_price}` : "";
+  return `${item.icon} ${quantity}${item.description}${price}`;
+}
+
+/** The notes body with only the first `itemCount` items, noting any omitted. */
+function buildNotes(receipt: ExtractedReceipt, itemCount: number): string {
   const parts: string[] = [];
 
   if (receipt.subtotal != null) parts.push(`Subtotal: ${receipt.subtotal}`);
   if (receipt.tax != null) parts.push(`Tax/VAT: ${receipt.tax}`);
 
-  if (receipt.line_items.length > 0) {
-    const items = receipt.line_items
-      .map((item) => {
-        const price = item.total_price != null ? ` (${item.total_price})` : "";
-        return `- ${item.description}${price}`;
-      })
-      .join("\n");
-    parts.push(`Line items:\n${items}`);
+  if (itemCount > 0) {
+    const lines = receipt.line_items.slice(0, itemCount).map(formatLineItem);
+    const omitted = receipt.line_items.length - itemCount;
+    if (omitted > 0) lines.push(`…and ${omitted} more`);
+    parts.push(`Items:\n${lines.join("\n")}`);
   }
 
   if (receipt.detected_language && receipt.detected_language !== "en" && receipt.translation) {
     parts.push(`Translation: ${receipt.translation}`);
   }
 
-  return parts.length > 0 ? parts.join("\n\n") : undefined;
+  return parts.join("\n\n");
+}
+
+/**
+ * The Expense model has no tax/line-item columns of its own (see
+ * lib/sdk/expense-service.ts) — rather than extending it for this one
+ * feature, that detail is folded into the (editable) notes field the
+ * existing expense form already has.
+ *
+ * That field is length-capped, and a long receipt's items plus a translation
+ * can exceed it — which would make the form reject the very expense it just
+ * pre-filled. So items are dropped from the end until the body fits.
+ */
+function composeNotes(receipt: ExtractedReceipt): string | undefined {
+  for (let itemCount = receipt.line_items.length; itemCount >= 0; itemCount--) {
+    const notes = buildNotes(receipt, itemCount);
+    if (notes.length <= NOTES_MAX_LENGTH) return notes || undefined;
+  }
+  // Doesn't fit even with no items — a very long translation. Keep the head
+  // of it rather than throwing away the subtotal/tax detail as well.
+  return buildNotes(receipt, 0).slice(0, NOTES_MAX_LENGTH);
 }
 
 /**

@@ -6,12 +6,15 @@ model is a raw, untrusted LLM claim.
 
 from pydantic import BaseModel, Field
 
+from app.validation.icons import FALLBACK_ICON
+
 
 class LineItem(BaseModel):
     description: str
     quantity: float | None = None
     unit_price: float | None = None
     total_price: float | None = None
+    icon: str = FALLBACK_ICON
 
 
 class Warning(BaseModel):

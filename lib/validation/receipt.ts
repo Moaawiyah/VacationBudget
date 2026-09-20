@@ -8,6 +8,7 @@ import { z } from "zod";
  */
 const lineItemSchema = z.object({
   description: z.string(),
+  icon: z.string(),
   quantity: z.number().nullable(),
   unit_price: z.number().nullable(),
   total_price: z.number().nullable(),

@@ -11,6 +11,7 @@ from app.validation.amounts import parse_amount
 from app.validation.categories import resolve_category
 from app.validation.currency import normalize_currency
 from app.validation.dates import parse_receipt_date
+from app.validation.icons import sanitize_icon
 
 _RECONCILE_TOLERANCE = 0.02
 _MAX_LINE_ITEMS = 100  # A malicious/malformed LLM response shouldn't be able
@@ -54,6 +55,7 @@ def _normalized_line_items(raw: RawExtraction) -> list[LineItem]:
             quantity=item.quantity,
             unit_price=parse_amount(item.unit_price),
             total_price=parse_amount(item.total_price),
+            icon=sanitize_icon(item.icon),
         )
         for item in raw.line_items[:_MAX_LINE_ITEMS]
         if item.description and item.description.strip()

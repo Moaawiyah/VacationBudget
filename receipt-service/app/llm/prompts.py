@@ -30,7 +30,9 @@ commentary, no extra keys), matching exactly this shape:
   "tax": number or null,
   "currency": string or null (a symbol or code as it appears, e.g. "$", "EUR"),
   "line_items": [ { "description": string, "quantity": number or null,
-    "unit_price": number or null, "total_price": number or null } ],
+    "unit_price": number or null, "total_price": number or null,
+    "icon": string (ONE emoji that best depicts this specific item, e.g. a
+      coffee emoji for an espresso, a bus emoji for a ticket; no words) } ],
   "category": string or null (see the allowed list in the user message — copy one
     of those values EXACTLY, or use null if none of them fit the purchase),
   "uncertain_fields": [string] (names of the fields above you are not confident about)

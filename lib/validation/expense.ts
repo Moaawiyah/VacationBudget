@@ -2,6 +2,9 @@ import { z } from "zod";
 import { CURRENCY_CODES } from "@/lib/currency/constants";
 import type { Dictionary } from "@/lib/i18n/types";
 
+/** Kept in one place so generated notes can't exceed what this schema accepts. */
+export const NOTES_MAX_LENGTH = 1000;
+
 export function expenseFields(t: Dictionary["validation"]) {
   return z.object({
     amount: z.coerce.number().positive(t.amountPositive),
@@ -18,7 +21,7 @@ export function expenseFields(t: Dictionary["validation"]) {
     expense_date: z.string().min(1, t.dateRequired),
     merchant: z.string().trim().max(200).optional().or(z.literal("")),
     location: z.string().trim().max(200).optional().or(z.literal("")),
-    notes: z.string().trim().max(1000).optional().or(z.literal("")),
+    notes: z.string().trim().max(NOTES_MAX_LENGTH).optional().or(z.literal("")),
   });
 }
 

@@ -49,6 +49,31 @@ async def test_http_error_raises_groq_error(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_rejection_surfaces_groqs_own_explanation_and_the_model_id(monkeypatch):
+    """A bare status code can't distinguish a bad model id from a bad URL —
+    Groq's body says which, so it has to reach the logs."""
+
+    async def fake_post(self, url, json, headers):
+        request = httpx.Request("POST", url)
+        return httpx.Response(
+            404,
+            json={"error": {"message": "The model `bogus-model` does not exist"}},
+            request=request,
+        )
+
+    monkeypatch.setattr(httpx.AsyncClient, "post", fake_post)
+    provider = GroqProvider(
+        api_key="secret",
+        model="bogus-model",
+        base_url="https://api.groq.com/openai/v1",
+        timeout=5,
+    )
+    with pytest.raises(GroqError, match="does not exist") as excinfo:
+        await provider.complete("system", "user")
+    assert "bogus-model" in str(excinfo.value)
+
+
+@pytest.mark.asyncio
 async def test_malformed_response_shape_raises_groq_error(monkeypatch):
     async def fake_post(self, url, json, headers):
         request = httpx.Request("POST", url)

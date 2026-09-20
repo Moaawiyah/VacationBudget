@@ -36,6 +36,17 @@ class GroqProvider(LLMProvider):
                     f"{self._base_url}/chat/completions", json=payload, headers=headers
                 )
                 response.raise_for_status()
+            except httpx.HTTPStatusError as exc:
+                # Groq explains *why* it rejected the call in the response body
+                # (bad model id, revoked key, rate limit). Without it, a 404
+                # is indistinguishable from a wrong URL — so surface it, capped
+                # so a huge error page can't flood the logs. The API key is only
+                # ever sent in a header, never echoed back here.
+                detail = exc.response.text[:500]
+                raise GroqError(
+                    f"Groq rejected the request (model={self._model}): "
+                    f"{exc.response.status_code} {detail}"
+                ) from exc
             except httpx.HTTPError as exc:
                 raise GroqError(f"Groq request failed: {exc}") from exc
 

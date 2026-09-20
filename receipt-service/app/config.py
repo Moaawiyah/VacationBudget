@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     # choice as of writing but is not authoritative; always set it explicitly
     # in production.
     groq_api_key: str = ""
-    groq_model: str = "gpt-oss-20b"
+    groq_model: str = "openai/gpt-oss-20b"
     groq_base_url: str = "https://api.groq.com/openai/v1"
     groq_timeout_seconds: float = 30.0
 

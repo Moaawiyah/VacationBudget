@@ -13,4 +13,17 @@ services:
       - "3000:3000"
     env_file:
       - .env.local
+    environment:
+      # Overrides .env.local's RECEIPT_SERVICE_URL (usually localhost, which
+      # doesn't resolve between containers) with compose's own DNS name.
+      RECEIPT_SERVICE_URL: http://receipt-service:8000
+    depends_on:
+      - receipt-service
+    restart: unless-stopped
+
+  receipt-service:
+    build:
+      context: ./receipt-service
+    env_file:
+      - receipt-service/.env
     restart: unless-stopped

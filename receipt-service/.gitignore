@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# env files (can opt-in for committing if needed)
+.env*
+# ...except the template, which holds placeholders only and documents every variable.
+!.env.example

@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The Python receipt-intelligence service — its own lint/format is
+    // ruff, run separately (see receipt-service/README.md).
+    "receipt-service/**",
   ]),
 ]);
 

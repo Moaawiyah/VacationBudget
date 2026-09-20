@@ -1,6 +1,7 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Receipt } from "lucide-react";
+import { Receipt, ScanLine } from "lucide-react";
 import { getSdk } from "@/lib/sdk/server";
 import { getDictionary } from "@/lib/i18n/server";
 import { ExpenseList } from "@/components/expenses/expense-list";
@@ -24,10 +25,19 @@ export default async function ExpensesPage({ params }: PageProps<"/trip/[id]/exp
       <Suspense fallback={null}>
         <ExpenseSavedToast />
       </Suspense>
-      <h1 className="text-foreground flex items-center gap-2 text-xl font-semibold">
-        <Receipt aria-hidden className="text-primary h-5 w-5 shrink-0" />
-        {dict.expenses.title}
-      </h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-foreground flex items-center gap-2 text-xl font-semibold">
+          <Receipt aria-hidden className="text-primary h-5 w-5 shrink-0" />
+          {dict.expenses.title}
+        </h1>
+        <Link
+          href={`/trip/${id}/expenses/receipt`}
+          className="border-border text-foreground flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium"
+        >
+          <ScanLine aria-hidden className="h-4 w-4 shrink-0" />
+          {dict.receipts.scanReceipt}
+        </Link>
+      </div>
       <ExpenseList
         tripId={id}
         expenses={expenses}

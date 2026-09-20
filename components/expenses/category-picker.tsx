@@ -14,6 +14,12 @@ type CategoryPickerProps = {
   value: string;
   onChange: (id: string) => void;
   error?: string;
+  /**
+   * Draws attention to the picker while nothing is chosen. Used by the
+   * receipt flow, where every other field arrives pre-filled — without this
+   * the one field still needing input looks the same as the rest.
+   */
+  highlightWhenEmpty?: boolean;
 };
 
 export function CategoryPicker({
@@ -21,6 +27,7 @@ export function CategoryPicker({
   value,
   onChange,
   error,
+  highlightWhenEmpty = false,
 }: CategoryPickerProps) {
   const dict = useDictionary();
   const [categories, setCategories] = useState(initial);
@@ -42,12 +49,25 @@ export function CategoryPicker({
     });
   }
 
+  const highlighted = highlightWhenEmpty && !value;
+
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-muted-foreground text-sm font-medium">
+      <p
+        className={cn(
+          "text-sm font-medium",
+          highlighted ? "text-primary" : "text-muted-foreground",
+        )}
+      >
         {dict.expenseForm.category}
+        {highlighted && ` — ${dict.expenseForm.categoryStillNeeded}`}
       </p>
-      <div className="grid grid-cols-4 gap-2">
+      <div
+        className={cn(
+          "grid grid-cols-4 gap-2",
+          highlighted && "ring-primary/40 -m-1 rounded-2xl p-1 ring-2",
+        )}
+      >
         {categories.map((category) => {
           const selected = category.id === value;
           return (

@@ -53,6 +53,7 @@ export const enTrips = {
   expenseForm: {
     exchangeRateLabel: "Exchange rate (1 {currency} = ? {base})",
     category: "Category",
+    categoryStillNeeded: "pick one",
     newCategory: "New",
     categoryNamePlaceholder: "Category name",
     addCategory: "Add",

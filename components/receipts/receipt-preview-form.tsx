@@ -112,6 +112,7 @@ export function ReceiptPreviewForm({
         defaultValues={defaults}
         onSubmit={(data) => createExpense(tripId, data)}
         submitLabel={dict.createExpense}
+        highlightCategory
       />
     </div>
   );

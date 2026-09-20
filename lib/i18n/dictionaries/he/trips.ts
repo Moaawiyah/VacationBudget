@@ -58,6 +58,7 @@ export const heTrips: Pick<
   expenseForm: {
     exchangeRateLabel: "שער חליפין (1 {currency} = ? {base})",
     category: "קטגוריה",
+    categoryStillNeeded: "בחרו אחת",
     newCategory: "חדשה",
     categoryNamePlaceholder: "שם הקטגוריה",
     addCategory: "הוספה",

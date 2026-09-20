@@ -31,6 +31,8 @@ type ExpenseFormProps = {
   submitLabel: string;
   /** Only remember the picked category for next time on the "new expense" form. */
   rememberCategory?: boolean;
+  /** Calls out the category picker while it's empty — see CategoryPicker. */
+  highlightCategory?: boolean;
 };
 
 export function ExpenseForm({
@@ -41,6 +43,7 @@ export function ExpenseForm({
   onSubmit,
   submitLabel,
   rememberCategory = false,
+  highlightCategory = false,
 }: ExpenseFormProps) {
   const dict = useDictionary();
   const [isPending, startTransition] = useTransition();
@@ -109,6 +112,7 @@ export function ExpenseForm({
             value={field.value}
             onChange={field.onChange}
             error={errors.category_id?.message}
+            highlightWhenEmpty={highlightCategory}
           />
         )}
       />

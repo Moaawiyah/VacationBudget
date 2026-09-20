@@ -58,6 +58,7 @@ export const arTrips: Pick<
   expenseForm: {
     exchangeRateLabel: "سعر الصرف (1 {currency} = ? {base})",
     category: "الفئة",
+    categoryStillNeeded: "اختر واحدة",
     newCategory: "جديدة",
     categoryNamePlaceholder: "اسم الفئة",
     addCategory: "إضافة",

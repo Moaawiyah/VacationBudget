@@ -3,6 +3,7 @@ extraction -> validation. Each stage is injected, so this stays testable with
 fakes and never imports heavy ML libraries itself.
 """
 
+import logging
 from dataclasses import dataclass, field
 
 from app.llm.extraction import extract
@@ -10,8 +11,11 @@ from app.llm.provider import LLMProvider
 from app.models.receipt import ExtractedReceipt
 from app.ocr.service import OcrService
 from app.upload.validator import validate_upload
+from app.validation.icons import FALLBACK_ICON
 from app.validation.receipt_validator import validate_extraction
 from app.vision.pipeline import preprocess_receipt
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass

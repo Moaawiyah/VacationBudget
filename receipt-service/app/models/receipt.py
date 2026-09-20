@@ -27,6 +27,9 @@ class ExtractedReceipt(BaseModel):
     subtotal: float | None = None
     tax: float | None = None
     currency: str | None = None  # ISO 4217, e.g. "EUR"
+    # Always one of the caller-supplied category names, or None — never a
+    # name the model invented (see app.validation.receipt_validator).
+    category: str | None = None
     detected_language: str | None = None
     translation: str | None = None
     line_items: list[LineItem] = Field(default_factory=list)

@@ -42,17 +42,21 @@ class RawExtraction(BaseModel):
     subtotal: float | str | None = None
     tax: float | str | None = None
     currency: str | None = None
+    category: str | None = None
     line_items: list[RawLineItem] = []
     uncertain_fields: list[str] = []
 
 
 async def extract(
-    provider: LLMProvider, ocr_text: str, language_hint: str | None = None
+    provider: LLMProvider,
+    ocr_text: str,
+    language_hint: str | None = None,
+    categories: list[str] | None = None,
 ) -> tuple[RawExtraction, list[str]]:
     """Returns the best-effort parsed extraction, plus extraction-stage warnings."""
     try:
         completion = await provider.complete(
-            SYSTEM_PROMPT, build_user_prompt(ocr_text, language_hint)
+            SYSTEM_PROMPT, build_user_prompt(ocr_text, language_hint, categories)
         )
     except Exception:
         logger.exception("LLM completion failed")

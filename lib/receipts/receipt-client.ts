@@ -15,6 +15,7 @@ const TIMEOUT_MS = 60_000;
 export async function analyzeReceipt(
   file: File,
   languageHint?: string,
+  categoryNames: string[] = [],
 ): Promise<AnalyzeReceiptResult> {
   const url = process.env.RECEIPT_SERVICE_URL;
   const token = process.env.RECEIPT_SERVICE_TOKEN;
@@ -26,6 +27,9 @@ export async function analyzeReceipt(
   const form = new FormData();
   form.append("file", file, file.name);
   if (languageHint) form.append("language_hint", languageHint);
+  // Comma-joined, so a name containing a comma would split — categories are
+  // short labels, and receipt-service drops anything it doesn't recognize.
+  if (categoryNames.length > 0) form.append("categories", categoryNames.join(","));
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);

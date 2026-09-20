@@ -15,6 +15,18 @@ from app.upload.validator import UploadValidationError, read_upload
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1/receipts", tags=["receipts"])
 
+# The category list is caller-supplied and ends up inside a prompt, so it's
+# bounded on both axes rather than trusted to be sane.
+_MAX_CATEGORIES = 40
+_MAX_CATEGORY_LENGTH = 50
+
+
+def _parse_categories(raw: str | None) -> list[str]:
+    if not raw:
+        return []
+    names = [name.strip()[:_MAX_CATEGORY_LENGTH] for name in raw.split(",")]
+    return [name for name in names if name][:_MAX_CATEGORIES]
+
 
 @router.post(
     "/analyze",
@@ -24,6 +36,7 @@ router = APIRouter(prefix="/v1/receipts", tags=["receipts"])
 async def analyze_receipt(
     file: UploadFile,
     language_hint: str | None = Form(default=None),
+    categories: str | None = Form(default=None),
     pipeline: ReceiptPipeline = Depends(get_pipeline),
 ) -> AnalyzeReceiptResponse:
     if language_hint not in SUPPORTED_LANGUAGES:
@@ -38,6 +51,7 @@ async def analyze_receipt(
                 content_type=file.content_type,
                 data=data,
                 language_hint=language_hint,
+                categories=_parse_categories(categories),
             )
         )
     except UploadValidationError as exc:

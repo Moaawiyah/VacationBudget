@@ -80,6 +80,39 @@ def test_line_items_are_capped_at_100():
     assert len(receipt.line_items) == 100
 
 
+def test_category_is_accepted_when_it_matches_the_allowed_list():
+    raw = RawExtraction(total=10.0, category="Food")
+    receipt = validate_extraction(raw, "", [], ["Food", "Transport"])
+    assert receipt.category == "Food"
+    assert not any(w.field == "category" for w in receipt.warnings)
+
+
+def test_category_match_ignores_case_but_returns_the_callers_spelling():
+    raw = RawExtraction(total=10.0, category="  fOOd  ")
+    receipt = validate_extraction(raw, "", [], ["Food"])
+    assert receipt.category == "Food"
+
+
+def test_hallucinated_category_is_dropped_and_flagged():
+    """The model must not be able to introduce a category the user doesn't have."""
+    raw = RawExtraction(total=10.0, category="Cryptocurrency")
+    receipt = validate_extraction(raw, "", [], ["Food", "Transport"])
+    assert receipt.category is None
+    assert any(w.field == "category" for w in receipt.warnings)
+
+
+def test_category_is_none_when_no_list_was_supplied():
+    raw = RawExtraction(total=10.0, category="Food")
+    receipt = validate_extraction(raw, "", [], [])
+    assert receipt.category is None
+
+
+def test_no_category_claim_is_not_flagged():
+    receipt = validate_extraction(RawExtraction(total=10.0), "", [], ["Food"])
+    assert receipt.category is None
+    assert not any(w.field == "category" for w in receipt.warnings)
+
+
 def test_confidence_never_goes_below_zero():
     raw = RawExtraction(uncertain_fields=[f"field{i}" for i in range(50)])
     receipt = validate_extraction(raw, "", ["llm_unavailable"])

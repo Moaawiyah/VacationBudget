@@ -11,6 +11,7 @@ function validReceiptJson() {
       subtotal: null,
       tax: null,
       currency: "EUR",
+      category: null,
       detected_language: "en",
       translation: null,
       line_items: [],
@@ -59,6 +60,36 @@ describe("analyzeReceipt", () => {
     expect(url).toBe("http://receipt-service:8000/v1/receipts/analyze");
     expect(init.headers.Authorization).toBe("Bearer secret-token");
     expect(result).toEqual({ receipt: validReceiptJson().receipt });
+  });
+
+  it("forwards the user's category names for the LLM to choose from", async () => {
+    vi.stubEnv("RECEIPT_SERVICE_URL", "http://receipt-service:8000");
+    vi.stubEnv("RECEIPT_SERVICE_TOKEN", "secret-token");
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => validReceiptJson(),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await analyzeReceipt(file, "en", ["Food", "Transport"]);
+
+    const body = fetchMock.mock.calls[0][1].body as FormData;
+    expect(body.get("categories")).toBe("Food,Transport");
+  });
+
+  it("omits the categories field entirely when there are none", async () => {
+    vi.stubEnv("RECEIPT_SERVICE_URL", "http://receipt-service:8000");
+    vi.stubEnv("RECEIPT_SERVICE_TOKEN", "secret-token");
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => validReceiptJson(),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await analyzeReceipt(file);
+
+    const body = fetchMock.mock.calls[0][1].body as FormData;
+    expect(body.get("categories")).toBeNull();
   });
 
   it("returns a friendly error on a non-OK response", async () => {

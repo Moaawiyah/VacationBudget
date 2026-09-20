@@ -39,8 +39,8 @@ export function ReceiptPreviewForm({
   useEffect(() => () => URL.revokeObjectURL(previewUrl), [previewUrl]);
 
   const defaults = useMemo(
-    () => mapReceiptToExpenseDefaults(receipt, baseCurrency),
-    [receipt, baseCurrency],
+    () => mapReceiptToExpenseDefaults(receipt, baseCurrency, categories),
+    [receipt, baseCurrency, categories],
   );
   const showTranslation =
     receipt.detected_language && receipt.detected_language !== "en" && receipt.translation;

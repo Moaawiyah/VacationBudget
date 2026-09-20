@@ -31,19 +31,35 @@ commentary, no extra keys), matching exactly this shape:
   "currency": string or null (a symbol or code as it appears, e.g. "$", "EUR"),
   "line_items": [ { "description": string, "quantity": number or null,
     "unit_price": number or null, "total_price": number or null } ],
+  "category": string or null (see the allowed list in the user message — copy one
+    of those values EXACTLY, or use null if none of them fit the purchase),
   "uncertain_fields": [string] (names of the fields above you are not confident about)
 }
 
 If a field cannot be determined, use null (or [] for lists) rather than guessing."""
 
 
-def build_user_prompt(ocr_text: str, language_hint: str | None) -> str:
+def build_user_prompt(
+    ocr_text: str, language_hint: str | None, categories: list[str] | None = None
+) -> str:
     hint = (
         f"\nHint: the receipt is likely in language '{language_hint}'."
         if language_hint
         else ""
     )
+    # The allowed categories are the signed-in user's own list (including any
+    # they named themselves), so they go in their own delimited block and are
+    # treated as data too — never as instructions. A name outside this list is
+    # rejected downstream (see app.validation.receipt_validator).
+    category_block = ""
+    if categories:
+        allowed = "\n".join(f"- {name}" for name in categories)
+        category_block = (
+            "\n\nChoose the best-fitting `category` from exactly this list, "
+            "copying the value verbatim, or null if none fit:\n"
+            f"<allowed_categories>\n{allowed}\n</allowed_categories>"
+        )
     return (
-        f"Extract the receipt fields from the OCR text below.{hint}\n\n"
+        f"Extract the receipt fields from the OCR text below.{hint}{category_block}\n\n"
         f"<ocr_text>\n{ocr_text}\n</ocr_text>"
     )

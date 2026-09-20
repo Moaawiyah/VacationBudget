@@ -8,6 +8,7 @@ never trusted directly, only used as hints for what to try to parse.
 from app.llm.extraction import RawExtraction
 from app.models.receipt import ExtractedReceipt, LineItem, Warning
 from app.validation.amounts import parse_amount
+from app.validation.categories import resolve_category
 from app.validation.currency import normalize_currency
 from app.validation.dates import parse_receipt_date
 
@@ -67,7 +68,10 @@ def _confidence(warnings: list[Warning]) -> float:
 
 
 def validate_extraction(
-    raw: RawExtraction, raw_ocr_text: str, extraction_warnings: list[str]
+    raw: RawExtraction,
+    raw_ocr_text: str,
+    extraction_warnings: list[str],
+    allowed_categories: list[str] | None = None,
 ) -> ExtractedReceipt:
     warnings = [
         Warning(field="llm", message=w, severity="error") for w in extraction_warnings
@@ -90,6 +94,14 @@ def validate_extraction(
             Warning(field="expense_date", message="Could not parse the receipt date")
         )
 
+    category, category_hallucinated = resolve_category(
+        raw.category, allowed_categories or []
+    )
+    if category_hallucinated:
+        warnings.append(
+            Warning(field="category", message="Suggested category was not recognized")
+        )
+
     reconciliation = _reconciliation_warning(total, subtotal, tax)
     if reconciliation:
         warnings.append(reconciliation)
@@ -108,6 +120,7 @@ def validate_extraction(
         subtotal=subtotal,
         tax=tax,
         currency=currency,
+        category=category,
         detected_language=raw.detected_language,
         translation=raw.translation,
         line_items=_normalized_line_items(raw),

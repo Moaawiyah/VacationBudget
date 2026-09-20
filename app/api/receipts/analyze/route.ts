@@ -39,9 +39,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });
   }
 
+  // The user's own categories go to receipt-service so the LLM can pick one
+  // of them by name. It only ever gets names — ids stay on this side, and a
+  // name that isn't in this list is rejected before it comes back.
+  const categories = await sdk.categories.list();
+
   const result = await analyzeReceipt(
     file,
     typeof languageHint === "string" ? languageHint : undefined,
+    categories.map((category) => category.name),
   );
   if ("error" in result) return NextResponse.json(result, { status: 502 });
   return NextResponse.json(result);

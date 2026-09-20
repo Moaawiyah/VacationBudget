@@ -26,6 +26,7 @@ export const extractedReceiptSchema = z.object({
   subtotal: z.number().nullable(),
   tax: z.number().nullable(),
   currency: z.string().nullable(),
+  category: z.string().nullable(),
   detected_language: z.string().nullable(),
   translation: z.string().nullable(),
   line_items: z.array(lineItemSchema),

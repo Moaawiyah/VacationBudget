@@ -3,7 +3,7 @@ extraction -> validation. Each stage is injected, so this stays testable with
 fakes and never imports heavy ML libraries itself.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from app.llm.extraction import extract
 from app.llm.provider import LLMProvider
@@ -20,6 +20,9 @@ class AnalyzeRequest:
     content_type: str | None
     data: bytes
     language_hint: str | None
+    # The caller's own expense categories, offered to the LLM to choose from.
+    # Empty means "don't suggest a category".
+    categories: list[str] = field(default_factory=list)
 
 
 class ReceiptPipeline:
@@ -36,5 +39,7 @@ class ReceiptPipeline:
         )
         prepared = preprocess_receipt(image)
         ocr_result = self._ocr.recognize(prepared, request.language_hint or "en")
-        raw, warnings = await extract(self._llm, ocr_result.text, request.language_hint)
-        return validate_extraction(raw, ocr_result.text, warnings)
+        raw, warnings = await extract(
+            self._llm, ocr_result.text, request.language_hint, request.categories
+        )
+        return validate_extraction(raw, ocr_result.text, warnings, request.categories)

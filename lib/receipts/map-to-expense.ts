@@ -1,8 +1,10 @@
+import type { Category } from "@/types/category";
 import type { ExtractedReceipt } from "@/types/receipt";
 
 export type ReceiptExpenseDefaults = {
   amount?: number;
   currency?: string;
+  category_id?: string;
   description?: string;
   expense_date?: string;
   merchant?: string;
@@ -39,18 +41,35 @@ function composeNotes(receipt: ExtractedReceipt): string | undefined {
 }
 
 /**
+ * Resolves the suggested category name back to one of the user's own
+ * categories. receipt-service already rejects anything outside the list it
+ * was given, so this is a lookup rather than a second trust decision — but
+ * it still returns undefined on a miss, leaving the field for the user.
+ */
+function resolveCategoryId(
+  suggested: string | null,
+  categories: Category[],
+): string | undefined {
+  if (!suggested) return undefined;
+  const needle = suggested.trim().toLowerCase();
+  return categories.find((c) => c.name.trim().toLowerCase() === needle)?.id;
+}
+
+/**
  * Best-effort mapping from a receipt extraction to the existing expense
- * form's fields. Category is deliberately left unset — guessing it from a
- * merchant name is unreliable, and the user must pick/confirm it anyway.
+ * form's fields. Every field here is a pre-fill the user can still edit
+ * before anything is saved.
  */
 export function mapReceiptToExpenseDefaults(
   receipt: ExtractedReceipt,
   baseCurrency: string,
+  categories: Category[] = [],
 ): ReceiptExpenseDefaults {
   const merchant = receipt.merchant?.trim() || undefined;
   return {
     amount: receipt.total ?? undefined,
     currency: receipt.currency ?? baseCurrency,
+    category_id: resolveCategoryId(receipt.category, categories),
     description: merchant,
     expense_date: receipt.expense_date ?? undefined,
     merchant,

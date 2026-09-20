@@ -19,6 +19,8 @@ export type ExtractedReceipt = {
   subtotal: number | null;
   tax: number | null;
   currency: string | null;
+  /** One of the user's own category names, or null. Never a name the LLM invented. */
+  category: string | null;
   detected_language: string | null;
   translation: string | null;
   line_items: ReceiptLineItem[];

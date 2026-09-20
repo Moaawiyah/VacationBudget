@@ -10,6 +10,7 @@ function validPayload() {
       subtotal: 11.5,
       tax: 1.0,
       currency: "EUR",
+      category: "Food",
       detected_language: "it",
       translation: "Total: 12.50 EUR",
       line_items: [{ description: "Coffee", quantity: 1, unit_price: 3, total_price: 3 }],

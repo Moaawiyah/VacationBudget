@@ -12,6 +12,7 @@ function receipt(overrides: Partial<ExtractedReceipt> = {}): ExtractedReceipt {
     currency: null,
     detected_language: null,
     translation: null,
+    category: null,
     line_items: [],
     warnings: [],
     raw_ocr_text: "",
@@ -19,6 +20,11 @@ function receipt(overrides: Partial<ExtractedReceipt> = {}): ExtractedReceipt {
     ...overrides,
   };
 }
+
+const CATEGORIES = [
+  { id: "cat-food", name: "Food" },
+  { id: "cat-transport", name: "Transport" },
+] as unknown as Parameters<typeof mapReceiptToExpenseDefaults>[2];
 
 describe("mapReceiptToExpenseDefaults", () => {
   it("maps the core fields and falls back to the trip's base currency", () => {
@@ -75,5 +81,37 @@ describe("mapReceiptToExpenseDefaults", () => {
 
   it("leaves notes unset when there is nothing to compose", () => {
     expect(mapReceiptToExpenseDefaults(receipt(), "EUR").notes).toBeUndefined();
+  });
+
+  it("resolves a suggested category name to that category's id", () => {
+    const defaults = mapReceiptToExpenseDefaults(
+      receipt({ category: "Transport" }),
+      "EUR",
+      CATEGORIES,
+    );
+    expect(defaults.category_id).toBe("cat-transport");
+  });
+
+  it("matches the suggested category case-insensitively", () => {
+    const defaults = mapReceiptToExpenseDefaults(
+      receipt({ category: "  food " }),
+      "EUR",
+      CATEGORIES,
+    );
+    expect(defaults.category_id).toBe("cat-food");
+  });
+
+  it("leaves the category unset when the suggestion matches nothing", () => {
+    const defaults = mapReceiptToExpenseDefaults(
+      receipt({ category: "Crypto" }),
+      "EUR",
+      CATEGORIES,
+    );
+    expect(defaults.category_id).toBeUndefined();
+  });
+
+  it("leaves the category unset when the receipt suggests none", () => {
+    const defaults = mapReceiptToExpenseDefaults(receipt(), "EUR", CATEGORIES);
+    expect(defaults.category_id).toBeUndefined();
   });
 });

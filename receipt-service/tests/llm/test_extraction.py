@@ -73,3 +73,23 @@ async def test_prompt_injection_payload_is_treated_as_inert_data():
     assert raw.total == 5.0
     assert not hasattr(raw, "system_override")
     assert warnings == []
+
+
+@pytest.mark.asyncio
+async def test_allowed_categories_are_offered_to_the_model():
+    captured: dict[str, str] = {}
+
+    class CapturingProvider(LLMProvider):
+        async def complete(self, system_prompt: str, user_prompt: str) -> str:
+            captured["user"] = user_prompt
+            return '{"category": "Food"}'
+
+    raw, _ = await extract(
+        CapturingProvider(), "ocr text", None, ["Food", "Transport"]
+    )
+
+    assert raw.category == "Food"
+    assert "Food" in captured["user"]
+    assert "Transport" in captured["user"]
+    # Kept in its own delimited block, like the OCR text — it's user data too.
+    assert "<allowed_categories>" in captured["user"]

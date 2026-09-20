@@ -21,5 +21,14 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY app ./app
 RUN uv sync --frozen --no-dev
 
+# Pre-download every PaddleOCR language model into the image at build time.
+# The container's filesystem is ephemeral, so without this, the first
+# request after every deploy pays for a multi-hundred-MB model download
+# from paddleocr.bj.bcebos.com — easily blowing past the client's request
+# timeout. See app/ocr/languages.py for the language list this must match.
+RUN uv run python -c "\
+from paddleocr import PaddleOCR; \
+[PaddleOCR(lang=lang, use_angle_cls=True, show_log=False) for lang in ('en', 'it', 'german', 'french', 'ar')]"
+
 EXPOSE 8000
 CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

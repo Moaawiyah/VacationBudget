@@ -4,7 +4,7 @@ import type { ExtractedReceipt } from "@/types/receipt";
 
 export type AnalyzeReceiptResult = { receipt: ExtractedReceipt } | { error: string };
 
-const TIMEOUT_MS = 45_000;
+const TIMEOUT_MS = 60_000;
 
 /**
  * Calls the Python receipt-intelligence service. Only ever invoked from the

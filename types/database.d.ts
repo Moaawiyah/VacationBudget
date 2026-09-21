@@ -15,20 +15,52 @@ export type Database = {
         Row: {
           id: string;
           email: string;
+          first_name: string | null;
+          surname: string | null;
+          username: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
           email: string;
+          first_name?: string | null;
+          surname?: string | null;
+          username?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           email?: string;
+          first_name?: string | null;
+          surname?: string | null;
+          username?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      trip_members: {
+        Row: {
+          trip_id: string;
+          user_id: string;
+          invited_by: string;
+          status: "pending" | "accepted";
+          created_at: string;
+          responded_at: string | null;
+        };
+        Insert: {
+          trip_id: string;
+          user_id: string;
+          invited_by: string;
+          status?: "pending" | "accepted";
+          created_at?: string;
+          responded_at?: string | null;
+        };
+        Update: {
+          status?: "pending" | "accepted";
+          responded_at?: string | null;
         };
         Relationships: [];
       };

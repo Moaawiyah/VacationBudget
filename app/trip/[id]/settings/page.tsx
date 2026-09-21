@@ -1,7 +1,8 @@
+import { ThemeSwitcher } from "@/components/settings/theme-switcher";
 import Link from "next/link";
 import { Info, Pencil, Settings } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getSdk } from "@/lib/sdk/server";
+import { getSdk, requireUser } from "@/lib/sdk/server";
 import { getDictionary } from "@/lib/i18n/server";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/settings/language-switcher";
@@ -12,7 +13,11 @@ export default async function TripSettingsPage({
 }: PageProps<"/trip/[id]/settings">) {
   const { id } = await params;
   const sdk = await getSdk();
-  const [trip, dict] = await Promise.all([sdk.trips.get(id), getDictionary()]);
+  const [trip, dict, { user }] = await Promise.all([
+    sdk.trips.get(id),
+    getDictionary(),
+    requireUser(),
+  ]);
   if (!trip) notFound();
 
   return (
@@ -22,16 +27,19 @@ export default async function TripSettingsPage({
         {dict.settings.title}
       </h1>
       <LanguageSwitcher />
+      <ThemeSwitcher />
       <div className="border-border bg-card text-muted-foreground flex gap-3 rounded-3xl border p-6 text-sm">
         <Info aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
         <p>{dict.settings.placeholderBody}</p>
       </div>
-      <Link href={`/trips/${trip.id}/edit`}>
-        <Button variant="secondary" className="gap-2">
-          <Pencil aria-hidden className="h-4 w-4 shrink-0" />
-          {dict.settings.editTripDetails}
-        </Button>
-      </Link>
+      {trip.user_id === user.id && (
+        <Link href={`/trips/${trip.id}/edit`}>
+          <Button variant="secondary" className="gap-2">
+            <Pencil aria-hidden className="h-4 w-4 shrink-0" />
+            {dict.settings.editTripDetails}
+          </Button>
+        </Link>
+      )}
     </main>
   );
 }

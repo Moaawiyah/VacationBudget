@@ -3,6 +3,7 @@ import { CategoryService } from "./category-service";
 import { ExpenseService } from "./expense-service";
 import { PlannedBudgetService } from "./planned-budget-service";
 import { TripService } from "./trip-service";
+import { CompanionService } from "./companion-service";
 import type { DbClient } from "./types";
 
 /**
@@ -16,11 +17,12 @@ export class VacationBudgetSDK {
   readonly expenses: ExpenseService;
   readonly categories: CategoryService;
   readonly plannedBudgets: PlannedBudgetService;
+  readonly companions: CompanionService;
 
   /**
    * @param db the request's Supabase client (user session; RLS applies)
    * @param admin optional service-role client, used only for the
-   *   "is this email already registered?" check during sign-up
+   *   signup duplicate checks and private username-to-email resolution
    */
   constructor(db: DbClient, admin: DbClient | null = null) {
     this.auth = new AuthService(db, admin);
@@ -28,5 +30,6 @@ export class VacationBudgetSDK {
     this.expenses = new ExpenseService(db);
     this.categories = new CategoryService(db);
     this.plannedBudgets = new PlannedBudgetService(db);
+    this.companions = new CompanionService(admin);
   }
 }

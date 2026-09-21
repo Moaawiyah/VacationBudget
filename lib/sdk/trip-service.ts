@@ -3,7 +3,7 @@ import { toTrip, type Trip } from "@/types/trip";
 import { BaseService } from "./base-service";
 import type { DbClient, WriteResult } from "./types";
 
-export type TripWithSpent = { trip: Trip; spent: number };
+export type TripWithSpent = { trip: Trip; spent: number; isOwner: boolean };
 
 /** Column values for a trip row, from already-validated form input. */
 export function toTripRow(input: TripInput) {
@@ -19,8 +19,8 @@ export function toTripRow(input: TripInput) {
 }
 
 /**
- * Trips. Reads rely on Row Level Security to only return the signed-in
- * user's rows; writes are additionally scoped to `userId` explicitly.
+ * Trips. Reads rely on Row Level Security to return owned trips and trips the
+ * signed-in user has accepted. Owner-only writes are scoped explicitly.
  */
 export class TripService extends BaseService {
   constructor(db: DbClient) {
@@ -35,14 +35,13 @@ export class TripService extends BaseService {
   }
 
   /**
-   * The user's trips, soonest first, each with its total converted spend.
+   * Accessible trips, soonest first, each with its total converted spend.
    * Two queries in total — not one per trip — however many trips there are.
    */
-  async listWithSpent(userId: string): Promise<TripWithSpent[]> {
+  async listWithSpent(_userId: string): Promise<TripWithSpent[]> {
     const { data: rows } = await this.db
       .from("trips")
       .select("*")
-      .eq("user_id", userId)
       .order("start_date", { ascending: true });
     const trips = (rows ?? []).map(toTrip);
     if (trips.length === 0) return [];
@@ -61,7 +60,11 @@ export class TripService extends BaseService {
         (spent.get(row.trip_id) ?? 0) + Number(row.converted_amount),
       );
     }
-    return trips.map((trip) => ({ trip, spent: spent.get(trip.id) ?? 0 }));
+    return trips.map((trip) => ({
+      trip,
+      spent: spent.get(trip.id) ?? 0,
+      isOwner: trip.user_id === _userId,
+    }));
   }
 
   /** Base currency of a trip `userId` owns; null if it isn't theirs or doesn't exist. */
@@ -71,6 +74,16 @@ export class TripService extends BaseService {
       .select("base_currency")
       .eq("id", tripId)
       .eq("user_id", userId)
+      .single();
+    return data?.base_currency ?? null;
+  }
+
+  /** Base currency for an owner or accepted companion; RLS decides access. */
+  async accessibleBaseCurrency(tripId: string): Promise<string | null> {
+    const { data } = await this.db
+      .from("trips")
+      .select("base_currency")
+      .eq("id", tripId)
       .single();
     return data?.base_currency ?? null;
   }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Plane, Settings } from "lucide-react";
+import { Plus, Plane, Settings, Mail } from "lucide-react";
 import { requireUser } from "@/lib/sdk/server";
 import { getDictionary } from "@/lib/i18n/server";
 import { TripCard } from "@/components/trips/trip-card";
@@ -7,16 +7,31 @@ import { LogoutButton } from "@/components/navigation/logout-button";
 
 export default async function TripsPage() {
   const [{ sdk, user }, dict] = await Promise.all([requireUser(), getDictionary()]);
-  const trips = await sdk.trips.listWithSpent(user.id);
+  const [trips, invitations] = await Promise.all([
+    sdk.trips.listWithSpent(user.id),
+    sdk.companions.invitations(user.id),
+  ]);
 
   return (
-    <main className="safe-top safe-x safe-bottom flex flex-1 flex-col gap-6 p-6">
+    <main className="safe-top safe-x safe-bottom mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-6 sm:p-10">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-foreground text-2xl font-semibold">{dict.trips.title}</h1>
           <p className="text-muted-foreground mt-1 text-sm">{user.email}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            href="/invitations"
+            aria-label={dict.travel.invitations}
+            className="text-muted-foreground relative flex h-9 w-9 items-center justify-center rounded-xl"
+          >
+            <Mail aria-hidden className="h-5 w-5" />
+            {invitations.length > 0 && (
+              <span className="bg-danger text-danger-foreground absolute -end-1 -top-1 grid size-5 place-items-center rounded-full text-[10px] font-bold">
+                {invitations.length}
+              </span>
+            )}
+          </Link>
           <Link
             href="/settings"
             aria-label={dict.nav.settings}
@@ -28,11 +43,12 @@ export default async function TripsPage() {
         </div>
       </div>
 
-      <Link href="/trips/new">
-        <button className="bg-primary text-primary-foreground flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-base font-medium active:opacity-80">
-          <Plus className="h-5 w-5" />
-          {dict.trips.newTrip}
-        </button>
+      <Link
+        href="/trips/new"
+        className="bg-primary text-primary-foreground flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-base font-medium active:opacity-80"
+      >
+        <Plus className="h-5 w-5" />
+        {dict.trips.newTrip}
       </Link>
 
       {trips.length === 0 ? (
@@ -47,9 +63,9 @@ export default async function TripsPage() {
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
-          {trips.map(({ trip, spent }) => (
-            <TripCard key={trip.id} trip={trip} spent={spent} />
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {trips.map(({ trip, spent, isOwner }) => (
+            <TripCard key={trip.id} trip={trip} spent={spent} isOwner={isOwner} />
           ))}
         </div>
       )}

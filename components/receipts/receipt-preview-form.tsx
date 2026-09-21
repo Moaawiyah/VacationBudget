@@ -32,7 +32,8 @@ export function ReceiptPreviewForm({
   receipt: ExtractedReceipt;
   onRetake: () => void;
 }) {
-  const dict = useDictionary().receipts;
+  const copy = useDictionary();
+  const dict = copy.receipts;
   // Deriving the URL during render (not via setState in an effect) avoids an
   // extra render; only the revocation needs to run as an effect.
   const previewUrl = useMemo(() => URL.createObjectURL(file), [file]);
@@ -43,10 +44,20 @@ export function ReceiptPreviewForm({
     [receipt, baseCurrency, categories],
   );
   const showTranslation =
-    receipt.detected_language && receipt.detected_language !== "en" && receipt.translation;
+    receipt.detected_language &&
+    receipt.detected_language !== "en" &&
+    receipt.translation;
 
   return (
     <div className="flex flex-col gap-5">
+      <div className="panel flex flex-wrap justify-between gap-3 text-sm">
+        <span>
+          {dict.detectedLanguage}: {receipt.detected_language?.toUpperCase() ?? "—"}
+        </span>
+        <span>
+          {copy.travel.confidence}: {Math.round(receipt.confidence * 100)}%
+        </span>
+      </div>
       {previewUrl && (
         // eslint-disable-next-line @next/next/no-img-element -- client-side object URL, not an optimizable remote asset
         <img
@@ -80,7 +91,7 @@ export function ReceiptPreviewForm({
         </div>
       )}
 
-      {receipt.line_items.length > 0 && (
+      {(receipt.line_items.length > 0 || receipt.tax != null) && (
         <div className="border-border bg-card flex flex-col gap-2 rounded-2xl border p-3 text-sm">
           <p className="flex items-center gap-1.5 font-medium">
             <ReceiptIcon aria-hidden className="h-4 w-4 shrink-0" />

@@ -1,9 +1,13 @@
+import type { RegisterInput } from "@/lib/validation/auth";
 import type { EmailOtpType, User } from "@supabase/supabase-js";
 import { BaseService } from "./base-service";
 import type { DbClient, WriteResult } from "./types";
 
 export type RegisterResult =
-  { status: "created" } | { status: "email_taken" } | { status: "error"; error: string };
+  | { status: "created" }
+  | { status: "username_taken" }
+  | { status: "email_taken" }
+  | { status: "error"; error: string };
 
 /** Sessions, sign-in, sign-up and sign-out, via Supabase Auth. */
 export class AuthService extends BaseService {
@@ -20,7 +24,18 @@ export class AuthService extends BaseService {
     return data.user;
   }
 
-  async signIn(email: string, password: string): Promise<WriteResult> {
+  async signIn(identifier: string, password: string): Promise<WriteResult> {
+    let email = identifier.trim().toLowerCase();
+    if (!email.includes("@")) {
+      if (!this.admin) return { error: "Invalid login" };
+      const { data, error } = await this.admin
+        .from("profiles")
+        .select("email")
+        .eq("username", email)
+        .limit(1);
+      if (error || !data?.[0]) return { error: "Invalid login" };
+      email = data[0].email;
+    }
     const { error } = await this.db.auth.signInWithPassword({ email, password });
     // A wrong password is an expected outcome, not a failure worth logging.
     return error ? { error: error.message } : {};
@@ -67,13 +82,28 @@ export class AuthService extends BaseService {
     email: string,
     password: string,
     emailRedirectTo: string,
+    identity?: Pick<RegisterInput, "first_name" | "surname" | "username">,
   ): Promise<RegisterResult> {
     if (await this.isEmailRegistered(email)) return { status: "email_taken" };
 
+    if (identity && this.admin) {
+      const { data, error } = await this.admin
+        .from("profiles")
+        .select("id")
+        .eq("username", identity.username.toLowerCase())
+        .limit(1);
+      if (error) return { status: "error", ...this.fail("register", error) };
+      if (data?.length) return { status: "username_taken" };
+    }
     const { data, error } = await this.db.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo },
+      options: {
+        emailRedirectTo,
+        ...(identity
+          ? { data: { ...identity, username: identity.username.toLowerCase() } }
+          : {}),
+      },
     });
     if (error) {
       // What Supabase returns instead when email confirmation is turned off.

@@ -21,6 +21,10 @@ export const enCore = {
     logIn: "Log in",
   },
   auth: {
+    identifier: "Username or email",
+    username: "Username",
+    surname: "Surname",
+    firstName: "First name",
     welcomeBack: "Welcome back",
     loginSubtitle: "Log in to your trips.",
     email: "Email",
@@ -45,10 +49,16 @@ export const enCore = {
     logOut: "Log out",
   },
   validation: {
+    identifierInvalid: "Enter a valid username or email",
+    usernameTaken: "This username is already taken",
+    usernameInvalid: "Use 3–30 letters, numbers, underscores, dots or hyphens",
+    nameMax100: "Use 100 characters or fewer",
+    surnameRequired: "Surname is required",
+    firstNameRequired: "First name is required",
     emailInvalid: "Enter a valid email address",
     passwordRequired: "Password is required",
     passwordMin8: "Password must be at least 8 characters",
-    loginInvalid: "Enter a valid email and password.",
+    loginInvalid: "Invalid username, email or password.",
     tooManyAttempts: "Too many attempts. Please wait a minute and try again.",
     genericInvalid: "Invalid input.",
 

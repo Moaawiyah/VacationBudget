@@ -1,3 +1,4 @@
+import { ThemeSwitcher } from "@/components/settings/theme-switcher";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/server";
@@ -22,6 +23,7 @@ export default async function SettingsPage() {
         <h1 className="text-foreground text-xl font-semibold">{dict.settings.title}</h1>
       </div>
       <LanguageSwitcher />
+      <ThemeSwitcher />
     </main>
   );
 }

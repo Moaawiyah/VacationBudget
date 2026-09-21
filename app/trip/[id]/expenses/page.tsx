@@ -38,6 +38,12 @@ export default async function ExpensesPage({ params }: PageProps<"/trip/[id]/exp
           {dict.receipts.scanReceipt}
         </Link>
       </div>
+      <Link
+        href={`/trip/${id}/expenses/new`}
+        className="bg-primary text-primary-foreground w-fit rounded-full px-4 py-2 text-sm font-medium"
+      >
+        + {dict.expenses.addExpense}
+      </Link>
       <ExpenseList
         tripId={id}
         expenses={expenses}

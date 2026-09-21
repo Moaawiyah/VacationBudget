@@ -84,6 +84,8 @@ SQL Editor (paste the file's contents, click Run):
 5. `0005_planned_budgets.sql` — planned_budgets table, RLS
 6. `0006_expenses_update_policy_fix.sql` — tightens the expenses update RLS
    policy to also verify trip ownership, matching the insert policy
+7. `0007_signup_identity.sql` — names and unique usernames, preserving existing accounts
+8. `0008_trip_companions.sql` — invitation state and participant-aware trip access
 
 Every table has Row Level Security enabled — a user can only read or write their own
 trips, expenses, categories, and planned budgets. `user_id` is always taken from the
@@ -206,3 +208,9 @@ docker compose --env-file .env.local up --build
 2. Tap the **Share** button, scroll down, tap **Add to Home Screen**.
 3. Open the app from the home screen icon — it launches full-screen, no browser
    chrome, with its own icon and splash color.
+
+### Signup identity and username login
+
+Apply `supabase/migrations/0007_signup_identity.sql` before deploying the updated signup form. It adds first name, surname, and a unique lowercase username to profiles and extends the existing signup trigger. Existing accounts keep their email login and nullable identity fields. New signups require all five fields.
+
+Set `SUPABASE_SERVICE_ROLE_KEY` on the app server for private username-to-email resolution. Login still authenticates the password through Supabase Auth. The key and resolved email are never returned to the browser. Usernames accept 3–30 ASCII letters, digits, underscores, dots, or hyphens and are case-insensitive.

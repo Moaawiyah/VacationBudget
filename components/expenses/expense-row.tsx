@@ -24,13 +24,13 @@ export function ExpenseRow({
   return (
     <Link
       href={`/trip/${tripId}/expenses/${expense.id}/edit`}
-      className="border-border bg-card flex items-center gap-3 rounded-2xl border p-3"
+      className="border-border bg-card hover:border-border hover:bg-muted/50 flex items-center gap-3 rounded-2xl border border-transparent p-3"
     >
-      <div className="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
-        <CategoryIcon
-          icon={expense.category.icon}
-          className="text-muted-foreground h-5 w-5"
-        />
+      <div
+        data-category={expense.category.icon}
+        className="expense-category flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+      >
+        <CategoryIcon icon={expense.category.icon} className="h-5 w-5" />
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-card-foreground truncate text-sm font-medium">

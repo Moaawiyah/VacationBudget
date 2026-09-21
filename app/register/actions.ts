@@ -5,7 +5,7 @@ import { getURL } from "@/lib/get-url";
 import { getDictionary } from "@/lib/i18n/server";
 import { getClientIp } from "@/lib/client-ip";
 import { rateLimit } from "@/lib/rate-limit";
-import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
+import { normalizeRegisterInput, registerSchema } from "@/lib/validation/auth";
 
 // Each registration triggers a Supabase account + confirmation email, so
 // cap creations per client IP to blunt automated sign-up abuse.
@@ -14,9 +14,9 @@ const WINDOW_MS = 60 * 60 * 1000;
 
 type RegisterResult = { error: string } | { emailTaken: true } | { success: true };
 
-export async function register(input: RegisterInput): Promise<RegisterResult> {
+export async function register(input: unknown): Promise<RegisterResult> {
   const dict = await getDictionary();
-  const parsed = registerSchema(dict.validation).safeParse(input);
+  const parsed = registerSchema(dict.validation).safeParse(normalizeRegisterInput(input));
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? dict.validation.genericInvalid };
   }
@@ -33,8 +33,14 @@ export async function register(input: RegisterInput): Promise<RegisterResult> {
     parsed.data.email,
     parsed.data.password,
     `${getURL()}auth/confirm`,
+    {
+      first_name: parsed.data.first_name,
+      surname: parsed.data.surname,
+      username: parsed.data.username,
+    },
   );
 
+  if (result.status === "username_taken") return { error: dict.validation.usernameTaken };
   if (result.status === "email_taken") return { emailTaken: true };
   if (result.status === "error") return { error: result.error };
   return { success: true };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { ReceiptScanner } from "./scanner-preview";
 import { Camera, Check, ImageUp } from "lucide-react";
 import { useDictionary } from "@/components/i18n/locale-provider";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ export function ReceiptDropzone({
 
   return (
     <div className="flex flex-col gap-4">
+      <ReceiptScanner file={selected} pending={pending} />
       <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border border-dashed p-8 text-center">
         {selected ? (
           <>
@@ -57,6 +59,7 @@ export function ReceiptDropzone({
           <Button
             type="button"
             variant="secondary"
+            disabled={pending}
             onClick={() => cameraInputRef.current?.click()}
             className="gap-2"
           >
@@ -66,6 +69,7 @@ export function ReceiptDropzone({
           <Button
             type="button"
             variant="secondary"
+            disabled={pending}
             onClick={() => libraryInputRef.current?.click()}
             className="gap-2"
           >
@@ -91,7 +95,11 @@ export function ReceiptDropzone({
         onChange={handleChange}
       />
 
-      {(localError || error) && <p className="text-danger text-sm">{localError ?? error}</p>}
+      {(localError || error) && (
+        <p role="alert" className="text-danger text-sm">
+          {localError ?? error}
+        </p>
+      )}
       <Button
         type="button"
         disabled={!selected}

@@ -69,14 +69,24 @@ describe("categorySchema", () => {
 
 describe("auth schemas", () => {
   it("validate email and password", () => {
-    expect(loginSchema(t).safeParse({ email: "a@b.co", password: "x" }).success).toBe(
-      true,
-    );
-    expect(firstMessage(loginSchema(t).safeParse({ email: "nope", password: "x" }))).toBe(
-      t.emailInvalid,
-    );
     expect(
-      firstMessage(registerSchema(t).safeParse({ email: "a@b.co", password: "short" })),
+      loginSchema(t).safeParse({ identifier: "a@b.co", password: "x" }).success,
+    ).toBe(true);
+    expect(
+      firstMessage(
+        loginSchema(t).safeParse({ identifier: "bad username", password: "x" }),
+      ),
+    ).toBe(t.identifierInvalid);
+    expect(
+      firstMessage(
+        registerSchema(t).safeParse({
+          first_name: "Moa",
+          surname: "Haj",
+          username: "moa",
+          email: "a@b.co",
+          password: "short",
+        }),
+      ),
     ).toBe(t.passwordMin8);
   });
 });

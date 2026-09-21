@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Lock, Mail, Plane, UserPlus } from "lucide-react";
+import { Lock, Mail, Plane, UserPlus, User, AtSign } from "lucide-react";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 import { useDictionary } from "@/components/i18n/locale-provider";
 import { register as registerUser } from "./actions";
@@ -25,12 +25,29 @@ export default function RegisterPage() {
     handleSubmit,
     setFocus,
     formState: { errors },
-  } = useForm<RegisterInput>({ resolver: zodResolver(registerSchema(dict.validation)) });
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema(dict.validation)),
+    defaultValues: {
+      first_name: "",
+      surname: "",
+      username: "",
+      email: "",
+      password: "",
+    },
+  });
 
   function onSubmit(data: RegisterInput) {
     setFormError(null);
     startTransition(async () => {
-      const result = await registerUser(data);
+      // Construct the action payload explicitly so its contract does not
+      // depend on browser autofill or object prototypes.
+      const result = await registerUser({
+        first_name: data.first_name,
+        surname: data.surname,
+        username: data.username,
+        email: data.email,
+        password: data.password,
+      });
       if ("error" in result) {
         setFormError(result.error);
       } else if ("emailTaken" in result) {
@@ -44,7 +61,7 @@ export default function RegisterPage() {
   if (submitted) return <CheckEmailNotice />;
 
   return (
-    <main className="safe-top safe-x safe-bottom flex flex-1 flex-col justify-center gap-6 px-6">
+    <main className="safe-top safe-x safe-bottom mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-6 py-8">
       <div>
         <div className="bg-primary text-primary-foreground mb-4 flex h-12 w-12 items-center justify-center rounded-2xl">
           <Plane aria-hidden className="h-6 w-6" />
@@ -57,6 +74,40 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <Input
+          id="first-name"
+          label={dict.auth.firstName}
+          icon={User}
+          autoComplete="given-name"
+          maxLength={100}
+          required
+          error={errors.first_name?.message}
+          {...register("first_name")}
+        />
+        <Input
+          id="surname"
+          label={dict.auth.surname}
+          icon={User}
+          autoComplete="family-name"
+          maxLength={100}
+          required
+          error={errors.surname?.message}
+          {...register("surname")}
+        />
+        <Input
+          id="username"
+          label={dict.auth.username}
+          icon={AtSign}
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          maxLength={30}
+          required
+          error={errors.username?.message}
+          {...register("username")}
+        />
+        <Input
+          id="register-email"
+          required
           label={dict.auth.email}
           icon={Mail}
           type="email"
@@ -66,6 +117,8 @@ export default function RegisterPage() {
           {...register("email")}
         />
         <Input
+          id="register-password"
+          required
           label={dict.auth.password}
           icon={Lock}
           type="password"
@@ -73,7 +126,11 @@ export default function RegisterPage() {
           error={errors.password?.message}
           {...register("password")}
         />
-        {formError && <p className="text-danger text-sm">{formError}</p>}
+        {formError && (
+          <p role="alert" className="text-danger text-sm">
+            {formError}
+          </p>
+        )}
         <Button type="submit" loading={isPending} className="gap-2">
           <UserPlus aria-hidden className="h-4 w-4 shrink-0" />
           {dict.auth.createAccount}

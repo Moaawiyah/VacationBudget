@@ -53,7 +53,7 @@ export async function BudgetOverview({
         <ProgressBar value={percentUsed} className="mt-3" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard
           label={d.budget}
           icon={Wallet}

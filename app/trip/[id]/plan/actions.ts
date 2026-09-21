@@ -17,12 +17,12 @@ export async function upsertPlannedBudget(
     return { error: parsed.error.issues[0]?.message ?? dict.validation.amountInvalid };
   }
 
-  const { sdk, user } = await requireUser();
+  const { sdk } = await requireUser();
 
   // RLS enforces trip ownership too — this check just gives a clean error
   // instead of a silent no-op if someone tries to plan for a trip that
   // isn't theirs (or doesn't exist).
-  if (!(await sdk.trips.isOwnedBy(user.id, tripId))) {
+  if (!(await sdk.trips.accessibleBaseCurrency(tripId))) {
     return { error: dict.trips.tripNotFound };
   }
 

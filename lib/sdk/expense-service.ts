@@ -89,20 +89,18 @@ export class ExpenseService extends BaseService {
       // Scoped by trip_id too, so a URL pairing this trip with another of the
       // user's expenses can't reprice that expense in this trip's currency.
       .eq("id", expenseId)
-      .eq("trip_id", scope.tripId)
-      .eq("user_id", scope.userId);
+      .eq("trip_id", scope.tripId);
     if (error) return this.fail("update", error);
     this.invalidate();
     return {};
   }
 
-  async delete(userId: string, tripId: string, expenseId: string): Promise<WriteResult> {
+  async delete(_userId: string, tripId: string, expenseId: string): Promise<WriteResult> {
     const { error } = await this.db
       .from("expenses")
       .delete()
       .eq("id", expenseId)
-      .eq("trip_id", tripId)
-      .eq("user_id", userId);
+      .eq("trip_id", tripId);
     if (error) return this.fail("delete", error);
     this.invalidate();
     return {};

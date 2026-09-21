@@ -87,7 +87,7 @@ describe("ExpenseService writes", () => {
     });
   });
 
-  it("scopes update and delete by id, trip and user", async () => {
+  it("scopes collaborative update and delete by expense and trip", async () => {
     const { db, calls } = createFakeDb();
     const expenses = new ExpenseService(db);
     expect(await expenses.update(scope, "exp-1", expenseInput)).toEqual({});
@@ -95,7 +95,6 @@ describe("ExpenseService writes", () => {
     const scoped = [
       ["id", "exp-1"],
       ["trip_id", "trip-1"],
-      ["user_id", "user-1"],
     ];
     expect(callsOf(calls, "expenses", "eq")).toEqual([...scoped, ...scoped]);
   });

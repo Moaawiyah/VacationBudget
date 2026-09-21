@@ -41,8 +41,8 @@ export async function POST(request: Request) {
   if (typeof tripId !== "string" || !tripId) {
     return NextResponse.json({ error: "Missing tripId" }, { status: 400 });
   }
-  const ownsTrip = (await sdk.trips.ownedBaseCurrency(user.id, tripId)) !== null;
-  if (!ownsTrip) {
+  const canAccessTrip = (await sdk.trips.accessibleBaseCurrency(tripId)) !== null;
+  if (!canAccessTrip) {
     return NextResponse.json({ error: "Trip not found" }, { status: 404 });
   }
   if (!(file instanceof File)) {

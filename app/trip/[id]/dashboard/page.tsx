@@ -1,70 +1,91 @@
 import { notFound } from "next/navigation";
+import { CalendarDays, CreditCard, TrendingUp } from "lucide-react";
 import { getSdk } from "@/lib/sdk/server";
-import { getDictionary } from "@/lib/i18n/server";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { LOCALE_BCP47 } from "@/lib/i18n/config";
 import { translateCategoryName } from "@/lib/i18n/category-names";
-import { calculateTripStatus } from "@/lib/calculations/trip";
+import { groupExpensesByCategory } from "@/lib/calculations/expenses";
 import {
-  groupExpensesByCategory,
-  groupExpensesByDate,
-  mergePlannedAndActual,
-} from "@/lib/calculations/expenses";
-import { BudgetOverview } from "@/components/dashboard/budget-overview";
-import { TripCountdown } from "@/components/dashboard/trip-countdown";
-import { DailySpendingList } from "@/components/dashboard/daily-spending-list";
-import { TripReport } from "@/components/dashboard/trip-report";
-import { CategoryBarChart } from "@/components/charts/category-bar-chart";
-import { DailyBarChart } from "@/components/charts/daily-bar-chart";
-import { PlannedActualChart } from "@/components/charts/planned-actual-chart";
+  calculateTripDays,
+  calculateRemainingDays,
+  calculateTripStatus,
+} from "@/lib/calculations/trip";
+import { formatCurrency } from "@/lib/currency/format";
+import { TripHero } from "@/components/dashboard/trip-hero";
+import { BudgetCard } from "@/components/dashboard/budget-card";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import { RecentExpenses } from "@/components/dashboard/recent-expenses";
+import { CategoryChart } from "@/components/charts/category-chart";
+import { StatCard } from "@/components/ui/stat-card";
 
-// Header + back link live in the shared trip/[id]/layout.tsx.
 export default async function TripDashboardPage({
   params,
 }: PageProps<"/trip/[id]/dashboard">) {
   const { id } = await params;
   const sdk = await getSdk();
-  const [trip, categories, expenses, plannedBudgets, dict] = await Promise.all([
+  const [trip, expenses, dict, locale] = await Promise.all([
     sdk.trips.get(id),
-    sdk.categories.list(),
     sdk.expenses.listForTrip(id),
-    sdk.plannedBudgets.listForTrip(id),
     getDictionary(),
+    getLocale(),
   ]);
-
   if (!trip) notFound();
-
-  const status = calculateTripStatus(trip.start_date, trip.end_date);
-  const totalSpent = expenses.reduce((sum, expense) => sum + expense.converted_amount, 0);
-  const totalPlanned = plannedBudgets.reduce((sum, p) => sum + p.planned_amount, 0);
-  const categoryBreakdown = groupExpensesByCategory(expenses).map((c) => ({
+  const spent = expenses.reduce((sum, item) => sum + item.converted_amount, 0);
+  const categories = groupExpensesByCategory(expenses).map((c) => ({
     ...c,
     name: translateCategoryName(c.name, dict),
   }));
-  const plannedActual = mergePlannedAndActual(categories, plannedBudgets, expenses).map(
-    (c) => ({ ...c, name: translateCategoryName(c.name, dict) }),
-  );
-
+  const days = calculateTripDays(trip.start_date, trip.end_date);
+  const status = calculateTripStatus(trip.start_date, trip.end_date);
+  const remaining =
+    status === "upcoming" ? days : Math.min(days, calculateRemainingDays(trip.end_date));
+  const elapsed =
+    status === "upcoming" ? 0 : status === "completed" ? days : days - remaining + 1;
   return (
-    <main className="safe-x flex flex-1 flex-col gap-4 p-6">
-      {status === "upcoming" && (
-        <TripCountdown trip={trip} totalSpentSoFar={totalSpent} />
-      )}
-      {status === "active" && (
-        <>
-          <BudgetOverview
-            trip={trip}
-            totalSpent={totalSpent}
-            totalPlanned={totalPlanned}
+    <main className="flex flex-col gap-5 p-4 sm:p-7 lg:p-8">
+      <header className="mb-1">
+        <p className="text-primary mb-1 text-xs font-semibold tracking-[.18em] uppercase">
+          {dict.travel.wallet}
+        </p>
+        <h1 className="text-xl font-semibold tracking-tight sm:text-3xl">
+          {dict.travel.greeting}
+        </h1>
+        <p className="text-muted-foreground mt-2 hidden text-sm sm:block">
+          {dict.travel.subtitle}
+        </p>
+      </header>
+      <div className="grid gap-5 xl:grid-cols-[1.8fr_1fr]">
+        <TripHero trip={trip} />
+        <BudgetCard trip={trip} spent={spent} />
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <StatCard
+          icon={TrendingUp}
+          label={dict.dashboard.averagePerDay}
+          value={
+            elapsed
+              ? formatCurrency(spent / elapsed, trip.base_currency, LOCALE_BCP47[locale])
+              : "—"
+          }
+        />
+        <StatCard
+          icon={CalendarDays}
+          label={dict.dashboard.remainingDays}
+          value={String(remaining)}
+        />
+        <div className="hidden sm:block">
+          <StatCard
+            icon={CreditCard}
+            label={dict.travel.totalExpenses}
+            value={String(expenses.length)}
           />
-          <CategoryBarChart data={categoryBreakdown} currency={trip.base_currency} />
-          <PlannedActualChart data={plannedActual} currency={trip.base_currency} />
-          <DailyBarChart
-            data={groupExpensesByDate(expenses)}
-            currency={trip.base_currency}
-          />
-          <DailySpendingList trip={trip} expenses={expenses} />
-        </>
-      )}
-      {status === "completed" && <TripReport trip={trip} expenses={expenses} />}
+        </div>
+      </div>
+      <QuickActions tripId={id} />
+      <div className="grid gap-5 xl:grid-cols-2">
+        <CategoryChart data={categories} currency={trip.base_currency} />
+        <RecentExpenses tripId={id} expenses={expenses} currency={trip.base_currency} />
+      </div>
     </main>
   );
 }

@@ -47,7 +47,14 @@ describe("TripService.listWithSpent", () => {
 
   it("sums converted spend per trip in one extra query", async () => {
     const { db, calls } = createFakeDb({
-      trips: [{ data: [tripRow(), tripRow({ id: "trip-2", name: "Oslo" })] }],
+      trips: [
+        {
+          data: [
+            tripRow(),
+            tripRow({ id: "trip-2", name: "Oslo", user_id: "user-2" }),
+          ],
+        },
+      ],
       expenses: [
         {
           data: [
@@ -60,11 +67,11 @@ describe("TripService.listWithSpent", () => {
 
     const result = await new TripService(db).listWithSpent("user-1");
 
-    expect(result.map((r) => [r.trip.id, r.spent])).toEqual([
-      ["trip-1", 15],
-      ["trip-2", 0],
+    expect(result.map((r) => [r.trip.id, r.spent, r.isOwner])).toEqual([
+      ["trip-1", 15, true],
+      ["trip-2", 0, false],
     ]);
-    expect(callsOf(calls, "trips", "eq")).toContainEqual(["user_id", "user-1"]);
+    expect(callsOf(calls, "trips", "eq")).toEqual([]);
     expect(callsOf(calls, "expenses", "in")).toEqual([["trip_id", ["trip-1", "trip-2"]]]);
   });
 });

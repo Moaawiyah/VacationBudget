@@ -1,92 +1,82 @@
 @import "tailwindcss";
 
-/*
- * Design tokens: every color used in the app should reference one of these
- * variables (via the @theme mapping below) rather than a raw Tailwind color.
- * That's what lets light/dark mode and future theme tweaks stay in one place.
- *
- * Palette: warm sand background, cream cards, espresso text and a caramel
- * primary — a calm, relaxed "bright brown" look. Every text/background pair
- * used by the UI meets WCAG AA (4.5:1).
- */
 :root {
-  --background: #efe2d0;
-  /* Soft cream glow painted at the top of the page behind content. */
-  --background-glow: #f9efe1;
-  /* Strength of the travel line-art behind content (body::before). */
+  --background: #f2f5f9;
+  --accent: #00c9a7;
+  --budget-fill: #49cba9;
+  --nav-background: #11212c;
+  --nav-active: #263846;
+  --nav-foreground: #dbe3ed;
+
+  --background-glow: #f7f9fc;
+
   --backdrop-opacity: 0.13;
-  --foreground: #2b1d14;
-  --card: #fdf8f1;
-  --card-foreground: #2b1d14;
-  --border: #e2d1bb;
-  --muted: #f2e6d6;
-  --muted-foreground: #6b5646;
-  --primary: #8c5129;
+  --foreground: #102033;
+  --card: #fbfcff;
+  --card-foreground: #102033;
+  --border: #e6ecf3;
+  --muted: #eaf0f5;
+  --muted-foreground: #53647d;
+  --primary: #008f7a;
   --primary-foreground: #ffffff;
   --danger: #b3362b;
   --danger-foreground: #ffffff;
-  --success: #3d7a37;
-  /* Warm-tinted shadow colors, so elevation reads as soft, not gray. */
-  --shadow-soft: rgb(74 45 20 / 0.08);
-  --shadow-strong: rgb(74 45 20 / 0.16);
-  /* Chart series identity — deliberately separate from --primary, which is a
-     UI/brand color, not a data-series color. Slots 1-2 of a validated
-     CVD-safe categorical palette (adjacent-pair Delta E 9.1 light / 8.4 dark,
-     both well above the 8 target). */
-  --chart-series-1: #2a78d6;
-  --chart-series-2: #eb6834;
-  --chart-grid: #eadcc9;
+  --success: #008f7a;
+
+  --shadow-soft: rgb(20 45 65 / 0.04);
+  --shadow-strong: rgb(20 45 65 / 0.09);
+
+  --chart-series-1: #22ba9f;
+  --chart-series-2: #4e90ff;
+  --chart-grid: #e6ecf3;
 }
 
-/* System dark mode, unless the user has explicitly chosen light in Settings. */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --background: #1a140f;
-    --background-glow: rgb(220 154 98 / 0.1);
+    --background: #0d1b24;
+    --background-glow: rgb(72 102 126 / 0.06);
     --backdrop-opacity: 0.1;
-    --foreground: #f3e9dd;
-    --card: #261e17;
-    --card-foreground: #f3e9dd;
-    --border: #3a2e24;
-    --muted: #30261d;
-    --muted-foreground: #b8a591;
-    --primary: #dc9a62;
-    --primary-foreground: #1f160f;
+    --foreground: #edf6f8;
+    --card: #1c2d38;
+    --card-foreground: #edf6f8;
+    --border: #2c3d49;
+    --muted: #243642;
+    --muted-foreground: #b3c1ce;
+    --primary: #28d6ba;
+    --primary-foreground: #09251f;
     --danger: #f08672;
-    --danger-foreground: #1f160f;
-    --success: #86c27d;
+    --danger-foreground: #09251f;
+    --success: #28d6ba;
     --shadow-soft: rgb(0 0 0 / 0.3);
     --shadow-strong: rgb(0 0 0 / 0.45);
-    --chart-series-1: #3987e5;
-    --chart-series-2: #d95926;
-    --chart-grid: #362b21;
+    --chart-series-1: #28c5a8;
+    --chart-series-2: #649dff;
+    --chart-grid: #2c3d49;
   }
 }
 
-/* Explicit dark mode, chosen in Settings, wins regardless of system preference. */
 :root.dark {
-  --background: #1a140f;
-  --background-glow: rgb(220 154 98 / 0.1);
+  --background: #0d1b24;
+  --background-glow: rgb(72 102 126 / 0.06);
   --backdrop-opacity: 0.1;
-  --foreground: #f3e9dd;
-  --card: #261e17;
-  --card-foreground: #f3e9dd;
-  --border: #3a2e24;
-  --muted: #30261d;
-  --muted-foreground: #b8a591;
-  --primary: #dc9a62;
-  --primary-foreground: #1f160f;
+  --foreground: #edf6f8;
+  --card: #1c2d38;
+  --card-foreground: #edf6f8;
+  --border: #2c3d49;
+  --muted: #243642;
+  --muted-foreground: #b3c1ce;
+  --primary: #28d6ba;
+  --primary-foreground: #09251f;
   --danger: #f08672;
-  --danger-foreground: #1f160f;
-  --success: #86c27d;
+  --danger-foreground: #09251f;
+  --success: #28d6ba;
   --shadow-soft: rgb(0 0 0 / 0.3);
   --shadow-strong: rgb(0 0 0 / 0.45);
-  --chart-series-1: #3987e5;
-  --chart-series-2: #d95926;
-  --chart-grid: #362b21;
+  --chart-series-1: #28c5a8;
+  --chart-series-2: #649dff;
+  --chart-grid: #2c3d49;
 }
 
-/* Maps CSS variables to Tailwind utilities, e.g. bg-background, text-muted-foreground. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -96,23 +86,26 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-budget-fill: var(--budget-fill);
+  --color-nav-background: var(--nav-background);
+  --color-nav-active: var(--nav-active);
+  --color-nav-foreground: var(--nav-foreground);
   --color-primary-foreground: var(--primary-foreground);
   --color-danger: var(--danger);
   --color-danger-foreground: var(--danger-foreground);
   --color-success: var(--success);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  /* Softer, warm-tinted versions of Tailwind's default shadow scale. */
+
   --shadow-sm: 0 1px 3px 0 var(--shadow-soft), 0 1px 2px -1px var(--shadow-soft);
   --shadow-md: 0 4px 10px -2px var(--shadow-soft), 0 2px 4px -2px var(--shadow-soft);
   --shadow-lg: 0 10px 24px -6px var(--shadow-strong), 0 4px 8px -4px var(--shadow-soft);
 }
 
 html {
-  /* Fills overscroll / rubber-band areas with the page color. */
   background-color: var(--background);
-  /* A fixed-height warm glow at the top — sized in rem so it doesn't stretch
-     on long pages, and a single gradient layer so it stays cheap on mobile. */
+
   background-image: radial-gradient(
     ellipse 120% 28rem at 50% 0,
     var(--background-glow),
@@ -121,36 +114,15 @@ html {
   background-repeat: no-repeat;
 }
 
-/* body deliberately has no background of its own, so the travel backdrop
-   below (z-index -1) shows above the html background but under content. */
 body {
   color: var(--foreground);
   overscroll-behavior-y: none;
-}
-
-/* Travel line-art (plane, sun, mountains, sailboat, waves, palm) anchored to
-   the bottom of the screen. public/travel-backdrop.svg is used as a mask so
-   the drawing is tinted with --primary and follows light/dark mode. Fixed, so
-   it stays put while pages scroll; cards are opaque, so text on them is
-   unaffected. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-color: var(--primary);
-  opacity: var(--backdrop-opacity);
-  -webkit-mask: url("/travel-backdrop.svg") center bottom / min(100%, 36rem) auto
-    no-repeat;
-  mask: url("/travel-backdrop.svg") center bottom / min(100%, 36rem) auto no-repeat;
 }
 
 ::selection {
   background-color: color-mix(in srgb, var(--primary) 25%, transparent);
 }
 
-/* iPhone safe-area helpers, used mainly by the bottom nav and top headers. */
 .safe-top {
   padding-top: env(safe-area-inset-top);
 }
@@ -160,4 +132,104 @@ body::before {
 .safe-x {
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+}
+
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 4px;
+}
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+a,
+button {
+  transition:
+    background-color 0.18s,
+    color 0.18s,
+    box-shadow 0.18s;
+}
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--card);
+  padding: 1.25rem;
+  box-shadow: 0 4px 24px var(--shadow-soft);
+}
+.trip-content > main {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+}
+.trip-content > main:has(form) {
+  max-width: 760px;
+}
+.travel-cover {
+  background-image:
+    linear-gradient(180deg, rgb(9 30 42 / 0.06), rgb(9 30 42 / 0.84)),
+    url("/alpine-lake.jpg");
+  background-size: cover;
+  background-position: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.panel {
+  min-width: 0;
+}
+.trip-content main > div {
+  min-width: 0;
+}
+
+/* Reference palette: mint budget progress, navy navigation, pastel actions. */
+.quick-action {
+  background: color-mix(in srgb, #55c7e9 22%, var(--card));
+  color: var(--foreground);
+  border-color: transparent;
+}
+.quick-action:nth-child(2) {
+  background: color-mix(in srgb, #42ceb4 24%, var(--card));
+}
+.quick-action:nth-child(3) {
+  background: color-mix(in srgb, #45c9a8 30%, var(--card));
+}
+.quick-action:nth-child(4) {
+  background: color-mix(in srgb, #8f9bff 18%, var(--card));
+}
+.quick-action:hover {
+  border-color: var(--primary);
+}
+.quick-action-icon {
+  background: #008f7a;
+  color: white;
+}
+.expense-category {
+  --category-color: #009b88;
+  color: var(--category-color);
+  background: color-mix(in srgb, var(--category-color) 13%, var(--card));
+}
+.expense-category[data-category="utensils-crossed"] {
+  --category-color: #e96955;
+}
+.expense-category[data-category="hotel"] {
+  --category-color: #8654ed;
+}
+.expense-category[data-category="fuel"] {
+  --category-color: #d68a00;
+}
+.expense-category[data-category="car"],
+.expense-category[data-category="bus"] {
+  --category-color: #467ff0;
+}
+.expense-category[data-category="shopping-bag"] {
+  --category-color: #c15ccc;
 }

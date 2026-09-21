@@ -34,7 +34,15 @@ const STATUS_ICON: Record<TripStatus, LucideIcon> = {
 
 // `spent` is the trip's total converted_amount across all expenses (summed
 // by the caller — see app/trips/page.tsx).
-export async function TripCard({ trip, spent = 0 }: { trip: Trip; spent?: number }) {
+export async function TripCard({
+  trip,
+  spent = 0,
+  isOwner = true,
+}: {
+  trip: Trip;
+  spent?: number;
+  isOwner?: boolean;
+}) {
   const [dict, locale] = await Promise.all([getDictionary(), getLocale()]);
   const bcp47 = LOCALE_BCP47[locale];
   const status = calculateTripStatus(trip.start_date, trip.end_date);
@@ -95,16 +103,18 @@ export async function TripCard({ trip, spent = 0 }: { trip: Trip; spent?: number
         </div>
       </Link>
 
-      <div className="border-border mt-4 flex gap-2 border-t pt-3">
-        <Link
-          href={`/trips/${trip.id}/edit`}
-          className="text-muted-foreground flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm font-medium transition-opacity active:opacity-60"
-        >
-          <Pencil className="h-4 w-4" />
-          {dict.common.edit}
-        </Link>
-        <DeleteTripButton tripId={trip.id} tripName={trip.name} />
-      </div>
+      {isOwner && (
+        <div className="border-border mt-4 flex gap-2 border-t pt-3">
+          <Link
+            href={`/trips/${trip.id}/edit`}
+            className="text-muted-foreground flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm font-medium transition-opacity active:opacity-60"
+          >
+            <Pencil className="h-4 w-4" />
+            {dict.common.edit}
+          </Link>
+          <DeleteTripButton tripId={trip.id} tripName={trip.name} />
+        </div>
+      )}
     </div>
   );
 }

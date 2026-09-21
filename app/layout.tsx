@@ -35,12 +35,11 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
   viewportFit: "cover",
   themeColor: [
     // Keep in sync with --background in app/globals.css.
-    { media: "(prefers-color-scheme: light)", color: "#efe2d0" },
-    { media: "(prefers-color-scheme: dark)", color: "#1a140f" },
+    { media: "(prefers-color-scheme: light)", color: "#f2f5f9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d1b24" },
   ],
 };
 
@@ -50,10 +49,19 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
 
   return (
     <html
+      suppressHydrationWarning
       lang={LOCALE_BCP47[locale]}
       dir={dirFor(locale)}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('vb-theme');if(t==='light'||t==='dark')document.documentElement.classList.add(t)}catch{}",
+          }}
+        />
+      </head>
       <body className="flex min-h-dvh flex-col font-sans">
         <LocaleProvider locale={locale} dict={dict}>
           <OfflineBanner />

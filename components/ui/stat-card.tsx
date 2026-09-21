@@ -24,12 +24,12 @@ export function StatCard({
   tone = "default",
 }: StatCardProps) {
   return (
-    <div className="border-border bg-card rounded-3xl border p-4">
+    <div className="panel h-full">
       <p className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
-        {Icon && <Icon aria-hidden className="h-3.5 w-3.5 shrink-0" />}
+        {Icon && <Icon aria-hidden className="h-3.5 w-3.5 shrink-0 text-blue-500" />}
         {label}
       </p>
-      <p className={cn("mt-1 text-xl font-semibold", TONE_CLASS[tone])}>{value}</p>
+      <p className={cn("mt-3 text-2xl font-semibold", TONE_CLASS[tone])}>{value}</p>
       {sublabel && <p className="text-muted-foreground mt-0.5 text-xs">{sublabel}</p>}
     </div>
   );

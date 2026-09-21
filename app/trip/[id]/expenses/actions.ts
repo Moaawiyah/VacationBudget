@@ -27,7 +27,7 @@ async function prepareExpense(
   input: ExpenseInput,
 ): Promise<PreparedExpense> {
   const [{ sdk, user }, dict] = await Promise.all([requireUser(), getDictionary()]);
-  const baseCurrency = await sdk.trips.ownedBaseCurrency(user.id, tripId);
+  const baseCurrency = await sdk.trips.accessibleBaseCurrency(tripId);
   if (!baseCurrency) return { error: dict.trips.tripNotFound };
 
   const parsed = createExpenseSchema(baseCurrency, dict.validation).safeParse(input);

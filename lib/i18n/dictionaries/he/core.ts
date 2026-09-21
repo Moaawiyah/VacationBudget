@@ -26,6 +26,10 @@ export const heCore: Pick<
     logIn: "התחברות",
   },
   auth: {
+    identifier: "שם משתמש או אימייל",
+    username: "שם משתמש",
+    surname: "שם משפחה",
+    firstName: "שם פרטי",
     welcomeBack: "ברוך שובך",
     loginSubtitle: "התחברו לטיולים שלכם.",
     email: "אימייל",
@@ -49,10 +53,17 @@ export const heCore: Pick<
     logOut: "התנתקות",
   },
   validation: {
+    identifierInvalid: "יש להזין שם משתמש או אימייל תקין",
+    usernameTaken: "שם המשתמש כבר תפוס",
+    usernameInvalid:
+      "יש להזין 3–30 אותיות באנגלית, ספרות, קווים תחתונים, נקודות או מקפים",
+    nameMax100: "עד 100 תווים",
+    surnameRequired: "יש להזין שם משפחה",
+    firstNameRequired: "יש להזין שם פרטי",
     emailInvalid: "הזינו כתובת אימייל תקינה",
     passwordRequired: "יש להזין סיסמה",
     passwordMin8: "הסיסמה חייבת לכלול לפחות 8 תווים",
-    loginInvalid: "הזינו אימייל וסיסמה תקינים.",
+    loginInvalid: "שם משתמש, אימייל או סיסמה שגויים.",
     tooManyAttempts: "יותר מדי ניסיונות. המתינו דקה ונסו שוב.",
     genericInvalid: "קלט לא תקין.",
 

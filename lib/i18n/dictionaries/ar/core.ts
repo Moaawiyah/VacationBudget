@@ -26,6 +26,10 @@ export const arCore: Pick<
     logIn: "تسجيل الدخول",
   },
   auth: {
+    identifier: "اسم المستخدم أو البريد الإلكتروني",
+    username: "اسم المستخدم",
+    surname: "اسم العائلة",
+    firstName: "الاسم الأول",
     welcomeBack: "مرحبًا بعودتك",
     loginSubtitle: "سجّل الدخول إلى رحلاتك.",
     email: "البريد الإلكتروني",
@@ -49,10 +53,16 @@ export const arCore: Pick<
     logOut: "تسجيل الخروج",
   },
   validation: {
+    identifierInvalid: "أدخل اسم مستخدم أو بريدًا إلكترونيًا صحيحًا",
+    usernameTaken: "اسم المستخدم مستخدم بالفعل",
+    usernameInvalid: "استخدم 3–30 حرفًا إنجليزيًا أو رقمًا أو شرطة سفلية أو نقطة أو شرطة",
+    nameMax100: "استخدم 100 حرف أو أقل",
+    surnameRequired: "اسم العائلة مطلوب",
+    firstNameRequired: "الاسم الأول مطلوب",
     emailInvalid: "أدخل بريدًا إلكترونيًا صحيحًا",
     passwordRequired: "كلمة المرور مطلوبة",
     passwordMin8: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
-    loginInvalid: "أدخل بريدًا إلكترونيًا وكلمة مرور صحيحين.",
+    loginInvalid: "اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة.",
     tooManyAttempts: "محاولات كثيرة جدًا. انتظر دقيقة ثم حاول مرة أخرى.",
     genericInvalid: "إدخال غير صالح.",
 

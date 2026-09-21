@@ -23,7 +23,11 @@ export default async function ReceiptExpensePage({
         <ScanLine aria-hidden className="text-primary h-5 w-5 shrink-0" />
         {dict.receipts.pageTitle}
       </h1>
-      <ReceiptUploadFlow tripId={id} baseCurrency={trip.base_currency} categories={categories} />
+      <ReceiptUploadFlow
+        tripId={id}
+        baseCurrency={trip.base_currency}
+        categories={categories}
+      />
     </main>
   );
 }

@@ -8,7 +8,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { loginSchema, type LoginInput } from "@/lib/validation/auth";
 
 // Brute-force / credential-stuffing guard on top of Supabase's own
-// platform-side limits: per IP (shared networks) and per email (targeted).
+// platform-side limits: per IP (shared networks) and per identifier (targeted).
 const ATTEMPTS = 10;
 const WINDOW_MS = 15 * 60 * 1000;
 
@@ -20,16 +20,16 @@ export async function login(input: LoginInput): Promise<{ error: string } | neve
   }
 
   const ip = await getClientIp();
-  const email = parsed.data.email.toLowerCase();
+  const identifier = parsed.data.identifier.toLowerCase();
   const limited =
     !rateLimit(`login-ip:${ip}`, ATTEMPTS, WINDOW_MS).allowed ||
-    !rateLimit(`login-email:${email}`, ATTEMPTS, WINDOW_MS).allowed;
+    !rateLimit(`login-identifier:${identifier}`, ATTEMPTS, WINDOW_MS).allowed;
   if (limited) return { error: dict.validation.tooManyAttempts };
 
   const sdk = await getSdk();
-  const { error } = await sdk.auth.signIn(parsed.data.email, parsed.data.password);
+  const { error } = await sdk.auth.signIn(identifier, parsed.data.password);
   if (error) {
-    return { error };
+    return { error: dict.validation.loginInvalid };
   }
 
   redirect("/trips");

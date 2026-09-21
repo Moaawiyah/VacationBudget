@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Receipt, Plus, ClipboardList, Settings } from "lucide-react";
+import { LayoutDashboard, Receipt, Plus, Map, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDictionary } from "@/components/i18n/locale-provider";
 
@@ -12,29 +12,43 @@ export function BottomNav({ tripId }: { tripId: string }) {
   const base = `/trip/${tripId}`;
 
   const tabs = [
-    { href: `${base}/dashboard`, label: dict.nav.dashboard, icon: LayoutDashboard },
+    { href: `${base}/dashboard`, label: dict.travel.home, icon: LayoutDashboard },
     { href: `${base}/expenses`, label: dict.nav.expenses, icon: Receipt },
-    { href: `${base}/plan`, label: dict.nav.plan, icon: ClipboardList },
-    { href: `${base}/settings`, label: dict.nav.settings, icon: Settings },
+    { href: "/trips", label: dict.trips.title, icon: Map },
+    { href: `${base}/settings`, label: dict.travel.more, icon: Settings },
   ];
 
   return (
-    <nav className="safe-bottom safe-x border-border bg-card fixed inset-x-0 bottom-0 z-20 border-t">
+    <nav className="safe-bottom safe-x bg-nav-background fixed inset-x-0 bottom-0 z-20 border-t border-white/10 lg:hidden">
       <div className="mx-auto grid max-w-md grid-cols-5 items-center px-2 py-2">
         {tabs.slice(0, 2).map((tab) => (
-          <NavItem key={tab.href} {...tab} active={pathname === tab.href} />
+          <NavItem
+            key={tab.href}
+            {...tab}
+            active={
+              pathname === tab.href ||
+              (tab.href === "/trips" && pathname === `${base}/details`)
+            }
+          />
         ))}
 
         <Link
           href={`${base}/expenses/new`}
           aria-label={dict.expenses.addExpense}
-          className="bg-primary text-primary-foreground -mt-6 flex h-14 w-14 items-center justify-center justify-self-center rounded-full shadow-lg active:opacity-90"
+          className="bg-accent -mt-6 flex h-14 w-14 items-center justify-center justify-self-center rounded-full text-[#073b35] shadow-lg ring-2 ring-white active:opacity-90"
         >
           <Plus aria-hidden className="h-6 w-6" />
         </Link>
 
         {tabs.slice(2).map((tab) => (
-          <NavItem key={tab.href} {...tab} active={pathname === tab.href} />
+          <NavItem
+            key={tab.href}
+            {...tab}
+            active={
+              pathname === tab.href ||
+              (tab.href === "/trips" && pathname === `${base}/details`)
+            }
+          />
         ))}
       </div>
     </nav>
@@ -55,9 +69,10 @@ function NavItem({
   return (
     <Link
       href={href}
+      aria-current={active ? "page" : undefined}
       className={cn(
         "flex flex-col items-center gap-1 justify-self-center rounded-xl px-2 py-1.5 text-xs font-medium",
-        active ? "text-primary" : "text-muted-foreground",
+        active ? "text-accent" : "text-slate-400",
       )}
     >
       <Icon className="h-5 w-5" />

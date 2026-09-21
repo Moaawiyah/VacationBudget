@@ -43,15 +43,18 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <Input
-          label={dict.auth.email}
+          id="login-identifier"
+          label={dict.auth.identifier}
           icon={Mail}
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          error={errors.email?.message}
-          {...register("email")}
+          type="text"
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          error={errors.identifier?.message}
+          {...register("identifier")}
         />
         <Input
+          id="login-password"
           label={dict.auth.password}
           icon={Lock}
           type="password"

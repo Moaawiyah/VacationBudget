@@ -6,6 +6,7 @@ import { arInsights } from "./insights";
 import { arReceipts } from "./receipts";
 import { arErrors } from "./errors";
 import { arBalances } from "./balances";
+import { arAi } from "./ai";
 
 const ar: Dictionary = {
   ...arCore,
@@ -15,6 +16,7 @@ const ar: Dictionary = {
   ...arTravel,
   ...arErrors,
   ...arBalances,
+  ...arAi,
 };
 
 export default ar;

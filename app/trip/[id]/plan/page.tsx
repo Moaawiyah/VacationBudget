@@ -8,22 +8,25 @@ import { interpolate } from "@/lib/i18n/interpolate";
 import { groupExpensesByCategory } from "@/lib/calculations/expenses";
 import { formatCurrency } from "@/lib/currency/format";
 import { PlanCategoryRow } from "@/components/plan/plan-category-row";
+import { AiBudgetPlanner } from "@/components/plan/ai-budget-planner";
 import { cn } from "@/lib/utils";
 
 export default async function TripPlanPage({ params }: PageProps<"/trip/[id]/plan">) {
   const { id } = await params;
   const sdk = await getSdk();
-  const [trip, categories, expenses, plannedBudgets, dict, locale] = await Promise.all([
+  const [trip, categories, expenses, plannedBudgets, dict, locale, user] = await Promise.all([
     sdk.trips.get(id),
     sdk.categories.list(),
     sdk.expenses.listForTrip(id),
     sdk.plannedBudgets.listForTrip(id),
     getDictionary(),
     getLocale(),
+    sdk.auth.getUser(),
   ]);
   const bcp47 = LOCALE_BCP47[locale];
 
   if (!trip) notFound();
+  const isOwner = user?.id === trip.user_id;
 
   const actualByCategory = new Map(
     groupExpensesByCategory(expenses).map((c) => [c.categoryId, c.amount]),
@@ -69,6 +72,8 @@ export default async function TripPlanPage({ params }: PageProps<"/trip/[id]/pla
           </span>
         </div>
       </div>
+
+      {isOwner && <AiBudgetPlanner tripId={id} />}
 
       <div className="flex flex-col gap-2">
         {categories.map((category) => (

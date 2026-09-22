@@ -43,6 +43,8 @@ export const arTrips: Pick<
     title: "المصروفات",
     addExpense: "إضافة مصروف",
     editExpenseTitle: "تعديل المصروف",
+    viewExpenseTitle: "المصروف",
+    readOnlyNotice: "يمكن فقط لمن أضاف هذا المصروف أو لمالك الرحلة تعديله.",
     noExpensesTitle: "لا توجد مصروفات بعد.",
     noExpensesSubtitle: "أضف أول مصروف لرحلتك.",
     searchPlaceholder: "ابحث في المصروفات",

@@ -31,12 +31,18 @@ export function ReceiptUploadFlow({
       const form = new FormData();
       form.append("tripId", tripId);
       form.append("file", file);
-      const response = await fetch("/api/receipts/analyze", { method: "POST", body: form });
+      const response = await fetch("/api/receipts/analyze", {
+        method: "POST",
+        body: form,
+      });
       const body: unknown = await response.json();
 
       if (!response.ok) {
         const message =
-          body && typeof body === "object" && "error" in body && typeof body.error === "string"
+          body &&
+          typeof body === "object" &&
+          "error" in body &&
+          typeof body.error === "string"
             ? body.error
             : dict.analyzeFailed;
         setError(message);

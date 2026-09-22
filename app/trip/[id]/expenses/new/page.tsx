@@ -10,9 +10,10 @@ export default async function NewExpensePage({
 }: PageProps<"/trip/[id]/expenses/new">) {
   const { id } = await params;
   const sdk = await getSdk();
+  const user = await sdk.auth.getUser();
   const [trip, categories, dict] = await Promise.all([
     sdk.trips.get(id),
-    sdk.categories.list(),
+    sdk.categories.listPickable(user?.id ?? ""),
     getDictionary(),
   ]);
 

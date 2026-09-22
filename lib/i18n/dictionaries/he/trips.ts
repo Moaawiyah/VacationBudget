@@ -43,6 +43,8 @@ export const heTrips: Pick<
     title: "הוצאות",
     addExpense: "הוספת הוצאה",
     editExpenseTitle: "עריכת הוצאה",
+    viewExpenseTitle: "הוצאה",
+    readOnlyNotice: "רק מי שהוסיף את ההוצאה או בעל הטיול יכולים לשנות אותה.",
     noExpensesTitle: "עדיין אין הוצאות.",
     noExpensesSubtitle: "הוסיפו את ההוצאה הראשונה שלכם.",
     searchPlaceholder: "חיפוש הוצאות",

@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logger";
+import { APP_ERROR_FALLBACK, classifyDbError, type AppErrorCode } from "./errors";
 import type { DbClient } from "./types";
 
 /**
@@ -31,9 +32,21 @@ export abstract class BaseService {
     this.reads.clear();
   }
 
-  /** Logs a failed operation and returns it in the `{ error }` shape actions return. */
-  protected fail(operation: string, error: { message: string }): { error: string } {
-    logger.error(`${this.scope}.${operation} failed`, { error: error.message });
-    return { error: error.message };
+  /**
+   * Logs a failed operation in full, but returns only a safe code and generic
+   * text: the raw message names tables, policies and constraints, which a
+   * user must never see.
+   */
+  protected fail(
+    operation: string,
+    error: { message: string; code?: string },
+    code: AppErrorCode = classifyDbError(error),
+  ): { error: string; code: AppErrorCode } {
+    logger.error(`${this.scope}.${operation} failed`, {
+      error: error.message,
+      dbCode: error.code,
+      code,
+    });
+    return { error: APP_ERROR_FALLBACK[code], code };
   }
 }

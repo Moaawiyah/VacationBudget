@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { AlertTriangle, Languages, Receipt as ReceiptIcon } from "lucide-react";
 import { createExpense } from "@/app/trip/[id]/expenses/actions";
 import { ExpenseForm } from "@/components/expenses/expense-form";
+import { useRequestId } from "@/components/expenses/use-request-id";
 import { useDictionary } from "@/components/i18n/locale-provider";
 import { mapReceiptToExpenseDefaults } from "@/lib/receipts/map-to-expense";
 import type { Category } from "@/types/category";
@@ -34,6 +35,8 @@ export function ReceiptPreviewForm({
 }) {
   const copy = useDictionary();
   const dict = copy.receipts;
+  // One key per scanned receipt: confirming it twice creates one expense.
+  const requestId = useRequestId();
   // Deriving the URL during render (not via setState in an effect) avoids an
   // extra render; only the revocation needs to run as an effect.
   const previewUrl = useMemo(() => URL.createObjectURL(file), [file]);
@@ -121,7 +124,7 @@ export function ReceiptPreviewForm({
         baseCurrency={baseCurrency}
         categories={categories}
         defaultValues={defaults}
-        onSubmit={(data) => createExpense(tripId, data)}
+        onSubmit={(data) => createExpense(tripId, data, requestId)}
         submitLabel={dict.createExpense}
         highlightCategory
       />

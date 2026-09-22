@@ -108,7 +108,10 @@ export class AuthService extends BaseService {
     if (error) {
       // What Supabase returns instead when email confirmation is turned off.
       if (error.code === "user_already_exists") return { status: "email_taken" };
-      return { status: "error", ...this.fail("register", error) };
+      // Unlike database errors, Supabase Auth's messages ("Password should be
+      // at least 6 characters") are written for end users — pass them on.
+      this.fail("register", error);
+      return { status: "error", error: error.message };
     }
     // An existing, confirmed account comes back as a user with no identities.
     if (data.user && data.user.identities?.length === 0) return { status: "email_taken" };

@@ -38,6 +38,9 @@ export const enTrips = {
     title: "Expenses",
     addExpense: "Add expense",
     editExpenseTitle: "Edit expense",
+    viewExpenseTitle: "Expense",
+    readOnlyNotice:
+      "Only the person who added this expense or the trip owner can change it.",
     noExpensesTitle: "No expenses yet.",
     noExpensesSubtitle: "Add your first vacation expense.",
     searchPlaceholder: "Search expenses",

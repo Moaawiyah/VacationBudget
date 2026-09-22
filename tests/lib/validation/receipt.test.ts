@@ -13,7 +13,9 @@ function validPayload() {
       category: "Food",
       detected_language: "it",
       translation: "Total: 12.50 EUR",
-      line_items: [{ description: "Coffee", icon: "☕", quantity: 1, unit_price: 3, total_price: 3 }],
+      line_items: [
+        { description: "Coffee", icon: "☕", quantity: 1, unit_price: 3, total_price: 3 },
+      ],
       warnings: [{ field: "merchant", message: "Low confidence", severity: "warning" }],
       raw_ocr_text: "CAFE ROMA\nTOTALE 12,50",
       confidence: 0.8,

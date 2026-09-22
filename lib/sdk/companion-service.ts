@@ -1,4 +1,11 @@
+import type { AppErrorCode } from "./errors";
 import type { WriteResult } from "./types";
+
+/** invite()'s outcome: its own domain codes, or a generic data-layer one. */
+export type InviteResult = {
+  error?: string;
+  code?: "trip_not_found" | "user_not_found" | "self" | "already_invited" | AppErrorCode;
+};
 import type { Companion } from "@/types/companion";
 import { InvitationService } from "./invitation-service";
 
@@ -17,11 +24,7 @@ type ProfileRow = {
 };
 
 export class CompanionService extends InvitationService {
-  async invite(
-    ownerId: string,
-    tripId: string,
-    username: string,
-  ): Promise<WriteResult & { code?: string }> {
+  async invite(ownerId: string, tripId: string, username: string): Promise<InviteResult> {
     if (!this.admin) return this.unavailable();
     const normalized = username.trim().toLowerCase();
     const { data: trips } = await this.admin
@@ -54,7 +57,11 @@ export class CompanionService extends InvitationService {
       invited_by: ownerId,
       status: "pending",
     });
-    return error ? { error: error.message } : {};
+    // Two concurrent invites both pass the "already invited" check above;
+    // the (trip_id, user_id) primary key stops the second.
+    if (error?.code === "23505")
+      return { error: "This user is already invited", code: "already_invited" };
+    return error ? this.failed("invite", error) : {};
   }
 
   async listForTrip(
@@ -120,6 +127,6 @@ export class CompanionService extends InvitationService {
       .delete()
       .eq("trip_id", tripId)
       .eq("user_id", userId);
-    return error ? { error: error.message } : {};
+    return error ? this.failed("remove", error) : {};
   }
 }

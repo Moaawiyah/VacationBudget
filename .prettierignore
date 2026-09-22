@@ -2,3 +2,6 @@ node_modules
 .next
 public
 package-lock.json
+
+# The Python receipt-intelligence service is formatted by ruff, not Prettier.
+receipt-service/

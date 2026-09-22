@@ -7,7 +7,8 @@ export const enReceipts = {
     chooseFromLibrary: "Choose from Photos",
     fileTooLarge: "File is too large (max 15MB).",
     analyze: "Analyze receipt",
-    analyzeFailed: "Could not read that receipt. Try a clearer photo, or enter it manually.",
+    analyzeFailed:
+      "Could not read that receipt. Try a clearer photo, or enter it manually.",
     reviewNeeded: "Please review before saving",
     detectedLanguage: "Detected language",
     lineItems: "Line items",

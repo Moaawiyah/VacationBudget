@@ -14,7 +14,8 @@ export type ReceiptExpenseDefaults = {
 
 /** "☕ 2 × Espresso — 5.00", dropping whatever the receipt didn't give us. */
 function formatLineItem(item: ReceiptLineItem): string {
-  const quantity = item.quantity != null && item.quantity !== 1 ? `${item.quantity} × ` : "";
+  const quantity =
+    item.quantity != null && item.quantity !== 1 ? `${item.quantity} × ` : "";
   const price = item.total_price != null ? ` — ${item.total_price}` : "";
   return `${item.icon} ${quantity}${item.description}${price}`;
 }

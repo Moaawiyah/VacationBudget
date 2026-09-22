@@ -13,7 +13,7 @@ export const heReceipts: Pick<Dictionary, "receipts"> = {
     reviewNeeded: "יש לבדוק לפני השמירה",
     detectedLanguage: "שפה שזוהתה",
     lineItems: "פריטים",
-    tax: "מע\"מ / מס",
+    tax: 'מע"מ / מס',
     retake: "שימוש בתמונה אחרת",
     receiptPreviewAlt: "תמונת הקבלה שהועלתה",
     createExpense: "יצירת הוצאה",

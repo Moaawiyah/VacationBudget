@@ -87,11 +87,12 @@ describe("ExpenseService writes", () => {
     });
   });
 
-  it("scopes collaborative update and delete by expense and trip", async () => {
-    const { db, calls } = createFakeDb();
+  it("scopes update and delete by expense and trip, reading back affected rows", async () => {
+    const hit = { data: [{ id: "exp-1" }] };
+    const { db, calls } = createFakeDb({ expenses: [hit, hit] });
     const expenses = new ExpenseService(db);
     expect(await expenses.update(scope, "exp-1", expenseInput)).toEqual({});
-    expect(await expenses.delete("user-1", "trip-1", "exp-1")).toEqual({});
+    expect(await expenses.delete("trip-1", "exp-1")).toEqual({});
     const scoped = [
       ["id", "exp-1"],
       ["trip_id", "trip-1"],
@@ -99,19 +100,49 @@ describe("ExpenseService writes", () => {
     expect(callsOf(calls, "expenses", "eq")).toEqual([...scoped, ...scoped]);
   });
 
-  it("returns and logs database errors from every write", async () => {
+  it("reports an update or delete that RLS refused (zero rows) as permission denied", async () => {
+    muteErrorLog();
+    const { db } = createFakeDb({ expenses: [{ data: [] }, { data: [] }] });
+    const expenses = new ExpenseService(db);
+    const denied = { error: expect.any(String), code: "permission_denied" };
+    expect(await expenses.update(scope, "exp-1", expenseInput)).toEqual(denied);
+    expect(await expenses.delete("trip-1", "exp-1")).toEqual(denied);
+  });
+
+  it("returns a safe code, never the raw database message, and logs the raw one", async () => {
     const log = muteErrorLog();
-    const failure = { error: { message: "denied" } };
+    const failure = { error: { message: 'new row violates policy "x"', code: "42501" } };
     const { db } = createFakeDb({ expenses: [failure, failure, failure] });
     const expenses = new ExpenseService(db);
 
-    expect(await expenses.create(scope, expenseInput)).toEqual({ error: "denied" });
-    expect(await expenses.update(scope, "exp-1", expenseInput)).toEqual({
-      error: "denied",
-    });
-    expect(await expenses.delete("user-1", "trip-1", "exp-1")).toEqual({
-      error: "denied",
-    });
+    for (const result of [
+      await expenses.create(scope, expenseInput),
+      await expenses.update(scope, "exp-1", expenseInput),
+      await expenses.delete("trip-1", "exp-1"),
+    ]) {
+      expect(result.code).toBe("permission_denied");
+      expect(result.error).not.toContain("policy");
+    }
     expect(log).toHaveBeenCalledTimes(3);
+    expect(log.mock.calls[0]?.[0]).toContain("violates policy");
+  });
+
+  it("sends the request id and treats a replayed one as already saved", async () => {
+    muteErrorLog();
+    const replay = { error: { message: "duplicate key", code: "23505" } };
+    const { db, calls } = createFakeDb({ expenses: [replay] });
+    const result = await new ExpenseService(db).create(scope, expenseInput, "req-1");
+    expect(result).toEqual({});
+    const [row] = callsOf(calls, "expenses", "insert")[0] as [Record<string, unknown>];
+    expect(row.client_request_id).toBe("req-1");
+  });
+
+  it("does not swallow a duplicate error when no request id was sent", async () => {
+    muteErrorLog();
+    const dup = { error: { message: "duplicate key", code: "23505" } };
+    const { db } = createFakeDb({ expenses: [dup] });
+    expect((await new ExpenseService(db).create(scope, expenseInput)).code).toBe(
+      "duplicate",
+    );
   });
 });

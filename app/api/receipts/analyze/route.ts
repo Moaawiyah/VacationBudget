@@ -58,7 +58,7 @@ export async function POST(request: Request) {
   // The user's own categories go to receipt-service so the LLM can pick one
   // of them by name. It only ever gets names — ids stay on this side, and a
   // name that isn't in this list is rejected before it comes back.
-  const categories = await sdk.categories.list();
+  const categories = await sdk.categories.listPickable(user.id);
 
   const result = await analyzeReceipt(
     file,

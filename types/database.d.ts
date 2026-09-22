@@ -145,6 +145,7 @@ export type Database = {
           merchant: string | null;
           location: string | null;
           notes: string | null;
+          client_request_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -162,6 +163,7 @@ export type Database = {
           merchant?: string | null;
           location?: string | null;
           notes?: string | null;
+          client_request_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -179,6 +181,7 @@ export type Database = {
           merchant?: string | null;
           location?: string | null;
           notes?: string | null;
+          client_request_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };

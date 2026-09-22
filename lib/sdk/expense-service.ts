@@ -67,42 +67,73 @@ export class ExpenseService extends BaseService {
     return data ? toExpense(data) : null;
   }
 
-  async create(scope: ExpenseScope, input: ExpenseInput): Promise<WriteResult> {
+  /**
+   * `requestId` identifies one "create" intent. If that same intent arrives
+   * again — a double tap, or the automatic Server Action retry after a
+   * dropped connection (next.config.ts `useOffline`) — the per-user unique
+   * index rejects the duplicate and this reports success: the expense the
+   * caller asked for already exists.
+   */
+  async create(
+    scope: ExpenseScope,
+    input: ExpenseInput,
+    requestId?: string,
+  ): Promise<WriteResult> {
     const { error } = await this.db.from("expenses").insert({
       trip_id: scope.tripId,
       user_id: scope.userId,
+      client_request_id: requestId ?? null,
       ...toExpenseRow(input, scope.baseCurrency),
     });
-    if (error) return this.fail("create", error);
+    const isReplay = Boolean(requestId) && error?.code === "23505";
+    if (error && !isReplay) return this.fail("create", error);
     this.invalidate();
     return {};
   }
 
+  /**
+   * Who may change an expense is decided by RLS (0009: its author, or the
+   * trip owner). A blocked update matches zero rows rather than erroring, so
+   * the affected rows are read back — otherwise a refused edit would look
+   * saved.
+   */
   async update(
     scope: ExpenseScope,
     expenseId: string,
     input: ExpenseInput,
   ): Promise<WriteResult> {
-    const { error } = await this.db
+    const { data, error } = await this.db
       .from("expenses")
       .update(toExpenseRow(input, scope.baseCurrency))
       // Scoped by trip_id too, so a URL pairing this trip with another of the
       // user's expenses can't reprice that expense in this trip's currency.
       .eq("id", expenseId)
-      .eq("trip_id", scope.tripId);
+      .eq("trip_id", scope.tripId)
+      .select("id");
     if (error) return this.fail("update", error);
+    if (!data?.length) return this.refused("update");
     this.invalidate();
     return {};
   }
 
-  async delete(_userId: string, tripId: string, expenseId: string): Promise<WriteResult> {
-    const { error } = await this.db
+  async delete(tripId: string, expenseId: string): Promise<WriteResult> {
+    const { data, error } = await this.db
       .from("expenses")
       .delete()
       .eq("id", expenseId)
-      .eq("trip_id", tripId);
+      .eq("trip_id", tripId)
+      .select("id");
     if (error) return this.fail("delete", error);
+    if (!data?.length) return this.refused("delete");
     this.invalidate();
     return {};
+  }
+
+  private refused(operation: string): WriteResult {
+    return this.fail(
+      operation,
+      { message: "no row matched: not permitted or not found" },
+      "permission_denied",
+    );
   }
 }

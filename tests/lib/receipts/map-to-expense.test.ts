@@ -30,7 +30,12 @@ const CATEGORIES = [
 describe("mapReceiptToExpenseDefaults", () => {
   it("maps the core fields and falls back to the trip's base currency", () => {
     const defaults = mapReceiptToExpenseDefaults(
-      receipt({ merchant: "Cafe Roma", total: 12.5, currency: null, expense_date: "2026-01-10" }),
+      receipt({
+        merchant: "Cafe Roma",
+        total: 12.5,
+        currency: null,
+        expense_date: "2026-01-10",
+      }),
       "EUR",
     );
     expect(defaults).toMatchObject({
@@ -48,8 +53,12 @@ describe("mapReceiptToExpenseDefaults", () => {
   });
 
   it("leaves merchant/description unset for a blank or missing merchant", () => {
-    expect(mapReceiptToExpenseDefaults(receipt({ merchant: "   " }), "EUR").merchant).toBeUndefined();
-    expect(mapReceiptToExpenseDefaults(receipt({ merchant: null }), "EUR").description).toBeUndefined();
+    expect(
+      mapReceiptToExpenseDefaults(receipt({ merchant: "   " }), "EUR").merchant,
+    ).toBeUndefined();
+    expect(
+      mapReceiptToExpenseDefaults(receipt({ merchant: null }), "EUR").description,
+    ).toBeUndefined();
   });
 
   it("puts only the items, each with its icon, in the notes", () => {
@@ -60,7 +69,13 @@ describe("mapReceiptToExpenseDefaults", () => {
         detected_language: "it",
         translation: "Total: 10 euros",
         line_items: [
-          { description: "Coffee", icon: "☕", quantity: 1, unit_price: 3, total_price: 3 },
+          {
+            description: "Coffee",
+            icon: "☕",
+            quantity: 1,
+            unit_price: 3,
+            total_price: 3,
+          },
         ],
       }),
       "EUR",
@@ -72,8 +87,20 @@ describe("mapReceiptToExpenseDefaults", () => {
     const defaults = mapReceiptToExpenseDefaults(
       receipt({
         line_items: [
-          { description: "Espresso", icon: "☕", quantity: 2, unit_price: 2.5, total_price: 5 },
-          { description: "Bus ticket", icon: "🚌", quantity: 1, unit_price: 2, total_price: 2 },
+          {
+            description: "Espresso",
+            icon: "☕",
+            quantity: 2,
+            unit_price: 2.5,
+            total_price: 5,
+          },
+          {
+            description: "Bus ticket",
+            icon: "🚌",
+            quantity: 1,
+            unit_price: 2,
+            total_price: 2,
+          },
         ],
       }),
       "EUR",
@@ -90,17 +117,21 @@ describe("mapReceiptToExpenseDefaults", () => {
       unit_price: 9.99,
       total_price: 9.99,
     }));
-    const defaults = mapReceiptToExpenseDefaults(receipt({ line_items: manyItems }), "EUR");
+    const defaults = mapReceiptToExpenseDefaults(
+      receipt({ line_items: manyItems }),
+      "EUR",
+    );
     expect(defaults.notes!.length).toBeLessThanOrEqual(NOTES_MAX_LENGTH);
     expect(defaults.notes).toMatch(/…and \d+ more$/);
   });
 
-
   it("leaves notes unset when the receipt has no items", () => {
-    const defaults = mapReceiptToExpenseDefaults(receipt({ subtotal: 10, tax: 1 }), "EUR");
+    const defaults = mapReceiptToExpenseDefaults(
+      receipt({ subtotal: 10, tax: 1 }),
+      "EUR",
+    );
     expect(defaults.notes).toBeUndefined();
   });
-
 
   it("resolves a suggested category name to that category's id", () => {
     const defaults = mapReceiptToExpenseDefaults(

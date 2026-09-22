@@ -1,6 +1,7 @@
 import type { TripInput } from "@/lib/validation/trip";
 import { toTrip, type Trip } from "@/types/trip";
 import { BaseService } from "./base-service";
+import type { AppErrorCode } from "./errors";
 import type { DbClient, WriteResult } from "./types";
 
 export type TripWithSpent = { trip: Trip; spent: number; isOwner: boolean };
@@ -96,7 +97,7 @@ export class TripService extends BaseService {
   async create(
     userId: string,
     input: TripInput,
-  ): Promise<{ id: string } | { error: string }> {
+  ): Promise<{ id: string } | { error: string; code?: AppErrorCode }> {
     const { data, error } = await this.db
       .from("trips")
       // user_id always comes from the session, never from the form.
@@ -110,23 +111,31 @@ export class TripService extends BaseService {
   }
 
   async update(userId: string, tripId: string, input: TripInput): Promise<WriteResult> {
-    const { error } = await this.db
+    const { data, error } = await this.db
       .from("trips")
       .update(toTripRow(input))
       .eq("id", tripId)
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .select("id");
     if (error) return this.fail("update", error);
+    // Zero rows = not the owner (or no such trip): say so, rather than
+    // letting a refused edit look saved.
+    if (!data?.length)
+      return this.fail("update", { message: "no row matched" }, "permission_denied");
     this.invalidate();
     return {};
   }
 
   async delete(userId: string, tripId: string): Promise<WriteResult> {
-    const { error } = await this.db
+    const { data, error } = await this.db
       .from("trips")
       .delete()
       .eq("id", tripId)
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .select("id");
     if (error) return this.fail("delete", error);
+    if (!data?.length)
+      return this.fail("delete", { message: "no row matched" }, "permission_denied");
     this.invalidate();
     return {};
   }

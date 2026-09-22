@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logger";
+import { APP_ERROR_FALLBACK, classifyDbError } from "./errors";
 import type { DbClient, WriteResult } from "./types";
 import type { TripInvitation } from "@/types/companion";
 
@@ -14,6 +16,13 @@ export class InvitationService {
 
   protected unavailable(): WriteResult {
     return { error: "Companion service is unavailable" };
+  }
+
+  /** Logs the raw database error; returns only a safe code and message. */
+  protected failed(operation: string, error: { message: string; code?: string }) {
+    const code = classifyDbError(error);
+    logger.error(`companions.${operation} failed`, { error: error.message, code });
+    return { error: APP_ERROR_FALLBACK[code], code };
   }
 
   async invitations(userId: string): Promise<TripInvitation[]> {
@@ -66,6 +75,6 @@ export class InvitationService {
           .eq("trip_id", tripId)
           .eq("user_id", userId)
           .eq("status", "pending");
-    return error ? { error: error.message } : {};
+    return error ? this.failed("respond", error) : {};
   }
 }

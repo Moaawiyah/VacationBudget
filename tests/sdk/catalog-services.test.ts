@@ -40,10 +40,8 @@ describe("CategoryService", () => {
       categories: [{ error: { message: "duplicate" } }, {}],
     });
     const categories = new CategoryService(db);
-    expect(await categories.create("user-1", "Food")).toEqual({ error: "duplicate" });
-    expect(await categories.create("user-1", "Food")).toEqual({
-      error: "No category returned",
-    });
+    expect(await categories.create("user-1", "Food")).toMatchObject({ code: "unknown" });
+    expect(await categories.create("user-1", "Food")).toMatchObject({ code: "unknown" });
   });
 });
 
@@ -76,12 +74,14 @@ describe("PlannedBudgetService", () => {
 
   it("returns upsert errors", async () => {
     muteErrorLog();
-    const { db } = createFakeDb({ planned_budgets: [{ error: { message: "rls" } }] });
-    expect(await new PlannedBudgetService(db).upsert("trip-1", CATEGORY_FOOD, 1)).toEqual(
-      {
-        error: "rls",
-      },
-    );
+    const { db } = createFakeDb({
+      planned_budgets: [
+        { error: { message: "violates row-level security", code: "42501" } },
+      ],
+    });
+    const result = await new PlannedBudgetService(db).upsert("trip-1", CATEGORY_FOOD, 1);
+    expect(result.code).toBe("permission_denied");
+    expect(result.error).not.toContain("row-level");
   });
 });
 
@@ -93,5 +93,20 @@ describe("VacationBudgetSDK", () => {
     expect(sdk.expenses).toBeDefined();
     expect(sdk.categories).toBeInstanceOf(CategoryService);
     expect(sdk.plannedBudgets).toBeInstanceOf(PlannedBudgetService);
+  });
+});
+
+describe("CategoryService.listPickable", () => {
+  it("offers only system and own categories, plus one kept for editing", async () => {
+    const rows = [
+      { id: "sys", user_id: null, name: "Food", icon: "utensils", created_at: "" },
+      { id: "mine", user_id: "user-1", name: "Mine", icon: "tag", created_at: "" },
+      { id: "theirs", user_id: "user-2", name: "Theirs", icon: "tag", created_at: "" },
+      { id: "kept", user_id: "user-3", name: "Kept", icon: "tag", created_at: "" },
+    ];
+    const { db } = createFakeDb({ categories: [{ data: rows }] });
+    const categories = new CategoryService(db);
+    const ids = (await categories.listPickable("user-1", "kept")).map((c) => c.id);
+    expect(ids).toEqual(["sys", "mine", "kept"]);
   });
 });

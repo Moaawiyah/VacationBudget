@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/sdk/server";
 import { getDictionary } from "@/lib/i18n/server";
+import { appErrorMessage } from "@/lib/i18n/app-error";
 
 export async function upsertPlannedBudget(
   tripId: string,
@@ -17,17 +18,17 @@ export async function upsertPlannedBudget(
     return { error: parsed.error.issues[0]?.message ?? dict.validation.amountInvalid };
   }
 
-  const { sdk } = await requireUser();
+  const { sdk, user } = await requireUser();
 
-  // RLS enforces trip ownership too — this check just gives a clean error
-  // instead of a silent no-op if someone tries to plan for a trip that
-  // isn't theirs (or doesn't exist).
-  if (!(await sdk.trips.accessibleBaseCurrency(tripId))) {
-    return { error: dict.trips.tripNotFound };
+  // Planning is owner-only (RLS enforces it too — 0009). Checking first turns
+  // a member's attempt into a clear message rather than a policy violation.
+  if (!(await sdk.trips.isOwnedBy(user.id, tripId))) {
+    const visible = await sdk.trips.accessibleBaseCurrency(tripId);
+    return { error: visible ? dict.errors.planOwnerOnly : dict.trips.tripNotFound };
   }
 
   const result = await sdk.plannedBudgets.upsert(tripId, categoryId, parsed.data);
-  if (result.error) return result;
+  if (result.error) return { error: appErrorMessage(result.code, dict.errors) };
 
   revalidatePath(`/trip/${tripId}/plan`);
   revalidatePath(`/trip/${tripId}/dashboard`);

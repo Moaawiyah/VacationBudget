@@ -7,6 +7,7 @@ import { getDictionary } from "@/lib/i18n/server";
 import { interpolate } from "@/lib/i18n/interpolate";
 import { getAIProvider } from "@/lib/ai/provider";
 import { generateBudgetPlan } from "@/lib/ai/planner/generate";
+import { applyBudgetPlan } from "@/lib/ai/planner/apply";
 import type { ValidatedBudgetPlan } from "@/lib/ai/planner/validator";
 import type { Dictionary } from "@/lib/i18n/types";
 
@@ -82,10 +83,7 @@ export async function generateAiBudgetPlan(
 
 /**
  * The only step that writes anything — called only when the user presses
- * "Apply Budget". Category names that don't already exist become new
- * custom categories (CategoryService.create, the same path the manual
- * "+ New" category button uses); every amount then goes through
- * PlannedBudgetService.upsert, the same write the manual Plan screen uses.
+ * "Apply Budget". See lib/ai/planner/apply.ts for exactly what it writes.
  */
 export async function applyAiBudgetPlan(
   tripId: string,
@@ -94,21 +92,9 @@ export async function applyAiBudgetPlan(
   const dict = await getDictionary();
   const { sdk, user } = await requireUser();
 
-  if (!(await sdk.trips.isOwnedBy(user.id, tripId))) return { error: dict.errors.planOwnerOnly };
-
-  const existing = await sdk.categories.listPickable(user.id);
-  const byName = new Map(existing.map((c) => [c.name.trim().toLowerCase(), c.id]));
-
-  for (const { category, amount } of categories) {
-    let categoryId = byName.get(category.trim().toLowerCase());
-    if (!categoryId) {
-      const created = await sdk.categories.create(user.id, category.trim());
-      if ("error" in created) return { error: dict.ai.applyError };
-      categoryId = created.category.id;
-      byName.set(category.trim().toLowerCase(), categoryId);
-    }
-    const result = await sdk.plannedBudgets.upsert(tripId, categoryId, amount);
-    if (result.error) return { error: dict.ai.applyError };
+  const result = await applyBudgetPlan(sdk, user.id, tripId, categories);
+  if (!result.ok) {
+    return { error: result.reason === "forbidden" ? dict.errors.planOwnerOnly : dict.ai.applyError };
   }
 
   revalidatePath(`/trip/${tripId}/plan`);

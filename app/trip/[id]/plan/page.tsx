@@ -78,7 +78,10 @@ export default async function TripPlanPage({ params }: PageProps<"/trip/[id]/pla
       <div className="flex flex-col gap-2">
         {categories.map((category) => (
           <PlanCategoryRow
-            key={category.id}
+            // The row keeps its own input state, seeded once from plannedAmount.
+            // Keying on the saved amount remounts it whenever the server's value
+            // changes (e.g. after Apply Budget), so it never shows a stale figure.
+            key={`${category.id}:${plannedByCategory.get(category.id) ?? 0}`}
             tripId={id}
             categoryId={category.id}
             categoryName={translateCategoryName(category.name, dict)}

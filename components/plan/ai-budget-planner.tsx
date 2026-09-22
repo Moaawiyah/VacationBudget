@@ -63,7 +63,12 @@ export function AiBudgetPlanner({ tripId }: { tripId: string }) {
       <div className="flex flex-col gap-2">
         <button
           type="button"
-          onClick={() => setPhase("form")}
+          onClick={() => {
+            // Start fresh: a leftover plan would hide the form (it only shows with no plan).
+            setPlan(null);
+            setError(null);
+            setPhase("form");
+          }}
           className="border-primary/40 text-primary flex items-center justify-center gap-2 rounded-2xl border border-dashed py-3 text-sm font-semibold"
         >
           <Sparkles aria-hidden className="size-4 shrink-0" />

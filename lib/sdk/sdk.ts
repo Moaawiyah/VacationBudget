@@ -1,3 +1,4 @@
+import { AccountService } from "./account-service";
 import { AuthService } from "./auth-service";
 import { CategoryService } from "./category-service";
 import { ExpenseService } from "./expense-service";
@@ -20,11 +21,14 @@ export class VacationBudgetSDK {
   readonly plannedBudgets: PlannedBudgetService;
   readonly companions: CompanionService;
   readonly settlements: SettlementService;
+  readonly account: AccountService;
 
   /**
    * @param db the request's Supabase client (user session; RLS applies)
-   * @param admin optional service-role client, used only for the
-   *   signup duplicate checks and private username-to-email resolution
+   * @param admin optional service-role client, used for the signup
+   *   duplicate checks, private username-to-email resolution, and account
+   *   deletion (which needs to act across trips beyond this user's own RLS
+   *   visibility, and to ban the auth user)
    */
   constructor(db: DbClient, admin: DbClient | null = null) {
     this.auth = new AuthService(db, admin);
@@ -34,5 +38,6 @@ export class VacationBudgetSDK {
     this.plannedBudgets = new PlannedBudgetService(db);
     this.companions = new CompanionService(admin);
     this.settlements = new SettlementService(db);
+    this.account = new AccountService(db, admin);
   }
 }

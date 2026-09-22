@@ -57,6 +57,18 @@ export const heInsights: Pick<
     editTripDetails: "עריכת פרטי הטיול",
     language: "שפה",
     languageDescription: "חל על כל האפליקציה, במכשיר הזה.",
+    exportTitle: "ייצוא הנתונים שלי",
+    exportDescription: "כל מה שמותר לך לראות על החשבון וההוצאות שלך.",
+    exportJson: "הורדת JSON",
+    exportCsv: "הורדת הוצאות (CSV)",
+    deleteAccountTitle: "מחיקת החשבון שלי",
+    deleteAccountDescription:
+      "מוחק את הפרטים האישיים שלך. הוצאות וסגירות חובות ששותפו איתך יישארו, בלי השם שלך.",
+    deleteAccountButton: "מחיקת החשבון שלי",
+    deleteAccountConfirmPrompt: "לא ניתן לבטל את זה. למחוק את החשבון?",
+    deleteAccountConfirmButton: "כן, למחוק את החשבון שלי",
+    deleteAccountCancel: "ביטול",
+    deleteAccountBlocked: "יש לך עדיין טיולים שאנשים אחרים משתתפים בהם — העבירו או מחקו אותם קודם:",
   },
   categories: {
     flights: "טיסות",

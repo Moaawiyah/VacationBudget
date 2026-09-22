@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getDictionary } from "@/lib/i18n/server";
 import { LanguageSwitcher } from "@/components/settings/language-switcher";
+import { ExportData } from "@/components/settings/export-data";
+import { DeleteAccount } from "@/components/settings/delete-account";
 
 // Account-level settings, reachable without opening a trip first — currently
 // just the language switcher (see components/settings/language-switcher.tsx,
@@ -24,6 +26,8 @@ export default async function SettingsPage() {
       </div>
       <LanguageSwitcher />
       <ThemeSwitcher />
+      <ExportData />
+      <DeleteAccount />
     </main>
   );
 }

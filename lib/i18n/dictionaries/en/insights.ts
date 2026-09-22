@@ -52,6 +52,18 @@ export const enInsights = {
     editTripDetails: "Edit trip details",
     language: "Language",
     languageDescription: "Applies across the whole app, on this device.",
+    exportTitle: "Export my data",
+    exportDescription: "Everything you're entitled to see about your own account and expenses.",
+    exportJson: "Download JSON",
+    exportCsv: "Download expenses (CSV)",
+    deleteAccountTitle: "Delete my account",
+    deleteAccountDescription:
+      "Removes your personal details. Expenses and settlements other people share with you stay, without your name attached.",
+    deleteAccountButton: "Delete my account",
+    deleteAccountConfirmPrompt: "This can't be undone. Delete your account?",
+    deleteAccountConfirmButton: "Yes, delete my account",
+    deleteAccountCancel: "Cancel",
+    deleteAccountBlocked: "You still own trips other people are on — transfer or delete them first:",
   },
   categories: {
     flights: "Flights",

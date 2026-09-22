@@ -57,6 +57,18 @@ export const arInsights: Pick<
     editTripDetails: "تعديل تفاصيل الرحلة",
     language: "اللغة",
     languageDescription: "تنطبق على التطبيق بأكمله، على هذا الجهاز.",
+    exportTitle: "تصدير بياناتي",
+    exportDescription: "كل ما يحق لك رؤيته عن حسابك ومصاريفك الخاصة.",
+    exportJson: "تحميل JSON",
+    exportCsv: "تحميل المصاريف (CSV)",
+    deleteAccountTitle: "حذف حسابي",
+    deleteAccountDescription:
+      "يزيل بياناتك الشخصية. تبقى المصاريف والتسويات التي يشاركها معك آخرون، دون اسمك.",
+    deleteAccountButton: "حذف حسابي",
+    deleteAccountConfirmPrompt: "لا يمكن التراجع عن هذا. هل تريد حذف حسابك؟",
+    deleteAccountConfirmButton: "نعم، احذف حسابي",
+    deleteAccountCancel: "إلغاء",
+    deleteAccountBlocked: "ما زلت تملك رحلات يشارك فيها آخرون — قم بنقلها أو حذفها أولاً:",
   },
   categories: {
     flights: "رحلات طيران",

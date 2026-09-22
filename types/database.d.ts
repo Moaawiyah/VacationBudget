@@ -18,6 +18,7 @@ export type Database = {
           first_name: string | null;
           surname: string | null;
           username: string | null;
+          deleted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -27,6 +28,7 @@ export type Database = {
           first_name?: string | null;
           surname?: string | null;
           username?: string | null;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -36,6 +38,7 @@ export type Database = {
           first_name?: string | null;
           surname?: string | null;
           username?: string | null;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

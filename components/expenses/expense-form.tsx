@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { AmountCurrencyField, ExchangeRateField } from "./expense-amount-fields";
 import { ExpenseDetailFields } from "./expense-detail-fields";
 import {
+  markRateManualOnEdit,
   saveRecentCategory,
   useLiveExchangeRate,
   useRecentCategory,
@@ -100,6 +101,7 @@ export function ExpenseForm({
           amount={watch("amount")}
           exchangeRate={watch("exchange_rate")}
           error={errors.exchange_rate?.message}
+          onManualEdit={() => markRateManualOnEdit(setValue)}
         />
       )}
 

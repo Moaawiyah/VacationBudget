@@ -14,6 +14,10 @@ import type { DbClient, WriteResult } from "./types";
  * expenses always convert at 1 (a client-sent rate is ignored), and
  * converted_amount is always derived here, never trusted from the client.
  * createExpenseSchema guarantees exchange_rate whenever the currencies differ.
+ *
+ * rate_source/rate_date default to "manual"/today when the form never set
+ * them (same-currency expenses, or a rate typed with no live lookup) — see
+ * lib/currency/exchange-rate.ts and 0016_historical_fx.sql.
  */
 export function toExpenseRow(input: ExpenseInput, baseCurrency: string) {
   const exchangeRate = input.currency === baseCurrency ? 1 : input.exchange_rate!;
@@ -28,6 +32,8 @@ export function toExpenseRow(input: ExpenseInput, baseCurrency: string) {
     merchant: input.merchant || null,
     location: input.location || null,
     notes: input.notes || null,
+    rate_source: input.rate_source ?? "manual",
+    rate_date: input.rate_date ?? new Date().toISOString().slice(0, 10),
   };
 }
 

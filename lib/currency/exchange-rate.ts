@@ -1,18 +1,20 @@
+import { todayIso, type RateLookup } from "./exchange-rate-provider";
+import { frankfurterProvider } from "./providers/frankfurter";
+
+const provider = frankfurterProvider;
+
 /**
- * Looks up a live exchange rate from `from` to `to`. Returns null when no
- * rate is available, which is always (aside from the trivial same-currency
- * case) in this version — no live provider is wired up, and the project
- * spec explicitly forbids faking one. The UI falls back to manual entry
- * whenever this returns null.
- *
- * Swapping in a real provider later (exchangerate.host, Fixer, Open
- * Exchange Rates, ...) means implementing the fetch here — nothing else
- * in the app needs to change, since every caller already handles null.
+ * Looks up a rate from `from` to `to`, for pre-filling the expense form.
+ * Same-currency is always the trivial 1, resolved with no network call.
+ * Everything else asks the configured ExchangeRateProvider and returns
+ * null on any failure — the form always falls back to manual entry, and a
+ * manually-entered rate is exactly as valid, just labeled `rate_source:
+ * "manual"` instead of the provider's name (see toExpenseRow).
  */
 export async function fetchExchangeRate(
   from: string,
   to: string,
-): Promise<number | null> {
-  if (from === to) return 1;
-  return null;
+): Promise<RateLookup | null> {
+  if (from === to) return { rate: 1, source: "manual", rateDate: todayIso() };
+  return provider.fetchRate(from, to);
 }

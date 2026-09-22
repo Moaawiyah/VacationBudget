@@ -52,7 +52,12 @@ export function AmountCurrencyField({
   );
 }
 
-/** Manual exchange-rate entry, with a live "≈ converted" preview. */
+/**
+ * Manual exchange-rate entry, with a live "≈ converted" preview. May arrive
+ * pre-filled from a live lookup (use-expense-form-effects); `onManualEdit`
+ * marks the rate as manually entered the moment the person changes it —
+ * their own number is exactly as valid, just labeled differently.
+ */
 export function ExchangeRateField({
   register,
   currency,
@@ -60,6 +65,7 @@ export function ExchangeRateField({
   amount,
   exchangeRate,
   error,
+  onManualEdit,
 }: {
   register: Register;
   currency: string;
@@ -67,11 +73,13 @@ export function ExchangeRateField({
   amount: unknown;
   exchangeRate: unknown;
   error?: string;
+  onManualEdit?: () => void;
 }) {
   const dict = useDictionary();
   const { bcp47 } = useLocale();
   const preview =
     amount && exchangeRate ? convertCurrency(Number(amount), Number(exchangeRate)) : null;
+  const { onChange, ...rateField } = register("exchange_rate");
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -87,7 +95,11 @@ export function ExchangeRateField({
         min="0"
         placeholder="1.00"
         error={error}
-        {...register("exchange_rate")}
+        onChange={(e) => {
+          onChange(e);
+          onManualEdit?.();
+        }}
+        {...rateField}
       />
       {preview !== null && (
         <p className="text-muted-foreground text-xs">

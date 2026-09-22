@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CURRENCIES, CURRENCY_CODES } from "@/lib/currency/constants";
 import { convertCurrency } from "@/lib/currency/convert";
-import { fetchExchangeRate } from "@/lib/currency/exchange-rate";
 import { formatCurrency } from "@/lib/currency/format";
 import { formatDateHeading, formatDateRange } from "@/lib/format-date";
 
@@ -21,11 +20,6 @@ describe("currency", () => {
   it("offers a curated list of currency codes", () => {
     expect(CURRENCY_CODES).toEqual(CURRENCIES.map((c) => c.code));
     expect(CURRENCY_CODES).toContain("ILS");
-  });
-
-  it("only knows the trivial same-currency rate for now", async () => {
-    expect(await fetchExchangeRate("EUR", "EUR")).toBe(1);
-    expect(await fetchExchangeRate("USD", "EUR")).toBeNull();
   });
 });
 

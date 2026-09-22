@@ -37,10 +37,12 @@ export function useRecentCategory(
 }
 
 /**
- * Tries a live rate whenever the currency changes. fetchExchangeRate()
- * returns null until a real provider is wired up (see its own comment), so
- * today this only clears the rate for the same-currency case — the user
- * enters foreign-currency rates manually. Nothing else changes later.
+ * Tries a live rate whenever the currency changes, and tags where it came
+ * from — "frankfurter" when the lookup filled it in, "manual" for the
+ * trivial same-currency case or whenever it can't be looked up (the field
+ * stays editable either way; the user's own number is exactly as valid,
+ * just labeled differently). Historical expenses are never revisited: this
+ * only runs while the form for *this* expense is open.
  */
 export function useLiveExchangeRate(
   currency: string | undefined,
@@ -51,14 +53,32 @@ export function useLiveExchangeRate(
     if (!currency) return;
     if (currency === baseCurrency) {
       setValue("exchange_rate", undefined);
+      setValue("rate_source", undefined);
+      setValue("rate_date", undefined);
       return;
     }
     let cancelled = false;
-    fetchExchangeRate(currency, baseCurrency).then((rate) => {
-      if (!cancelled && rate !== null) setValue("exchange_rate", rate);
+    fetchExchangeRate(currency, baseCurrency).then((lookup) => {
+      if (cancelled) return;
+      if (lookup !== null) {
+        setValue("exchange_rate", lookup.rate);
+        setValue("rate_source", lookup.source as "manual" | "frankfurter");
+        setValue("rate_date", lookup.rateDate);
+      } else {
+        setValue("rate_source", "manual");
+      }
     });
     return () => {
       cancelled = true;
     };
   }, [currency, baseCurrency, setValue]);
+}
+
+/**
+ * Marking a rate "manual" the moment the person edits it — even one that
+ * started as a provider lookup — is the "clearly marked" override the FX
+ * spec calls for, without any UI beyond the rate field itself.
+ */
+export function markRateManualOnEdit(setValue: SetValue) {
+  setValue("rate_source", "manual");
 }

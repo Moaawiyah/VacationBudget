@@ -12,6 +12,12 @@ export function expenseFields(t: Dictionary["validation"]) {
     // Only required when currency differs from the trip's base currency —
     // see createExpenseSchema below, which knows that at call time.
     exchange_rate: z.coerce.number().positive(t.exchangeRatePositive).optional(),
+    // Provenance of exchange_rate: which provider looked it up (or "manual"
+    // if the trip's own currency, or the user typed/edited it themselves),
+    // and the calendar date that rate is quoted for. Both optional — a
+    // same-currency expense has no rate to provenance at all.
+    rate_source: z.enum(["manual", "frankfurter"]).optional(),
+    rate_date: z.string().optional(),
     category_id: z.string().uuid(t.categoryChoose),
     description: z
       .string()

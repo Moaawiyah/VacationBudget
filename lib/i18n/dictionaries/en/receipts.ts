@@ -15,6 +15,32 @@ export const enReceipts = {
     tax: "Tax / VAT",
     retake: "Use a different photo",
     receiptPreviewAlt: "Uploaded receipt photo",
+    stageUploading: "Uploading…",
+    stageProcessing: "Processing image…",
+    stageReading: "Reading receipt…",
+    stageExtracting: "Extracting information…",
+    tryAgain: "Try again",
+    enterManually: "Enter manually instead",
+    warnings: {
+      merchant_missing: "Merchant not found — please add it.",
+      total_missing: "Could not determine total.",
+      total_unparseable: "Could not read the total amount.",
+      total_not_positive: "The total isn't a positive amount — please enter it.",
+      total_suspicious: "The total looks unusually large — please check it.",
+      amount_ambiguous:
+        "Check the amount: the thousands and decimal separators were unclear.",
+      currency_unrecognized: "Currency not recognized — please choose it.",
+      currency_ambiguous:
+        "Check the currency: this symbol is used by several currencies.",
+      date_unparseable: "Could not read the date — please check it.",
+      totals_mismatch: "Subtotal and tax don't add up to the total.",
+      tax_mismatch: "The tax lines don't add up to the stated tax.",
+      items_mismatch: "The items don't add up to the total.",
+      category_unrecognized: "Please choose a category.",
+      low_confidence: "Some values may be inaccurate — please double-check them.",
+      llm_malformed_output:
+        "The receipt couldn't be fully understood — please review every field.",
+    },
     createExpense: "Create expense",
   },
 };

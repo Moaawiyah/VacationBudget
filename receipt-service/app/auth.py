@@ -8,18 +8,19 @@ DB-agnostic while ensuring it's unreachable by an untrusted client directly.
 
 import hmac
 
-from fastapi import Header, HTTPException, status
+from fastapi import Header
 
 from app.config import get_settings
+from app.errors import ServiceError
 
 
 async def require_service_token(authorization: str | None = Header(default=None)) -> None:
     settings = get_settings()
     expected = settings.service_auth_token
     if not expected:
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Service not configured")
+        raise ServiceError("service_unconfigured", 503, "Service not configured")
     if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing bearer token")
+        raise ServiceError("unauthorized", 401, "Missing bearer token")
     token = authorization.removeprefix("Bearer ")
     if not hmac.compare_digest(token, expected):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token")
+        raise ServiceError("unauthorized", 401, "Invalid token")

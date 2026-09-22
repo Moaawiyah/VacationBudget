@@ -25,14 +25,34 @@ def parse_amount(raw: float | int | str | None) -> float | None:
         decimal_sep = "," if cleaned.rfind(",") > cleaned.rfind(".") else "."
         thousands_sep = "." if decimal_sep == "," else ","
         cleaned = cleaned.replace(thousands_sep, "").replace(decimal_sep, ".")
-    elif has_comma:
-        # A lone comma with exactly two trailing digits reads as a decimal
-        # point (European style, "12,50"); anything else is a thousands
-        # separator ("12,500" -> 12500).
-        tail = cleaned.split(",")[-1]
-        cleaned = cleaned.replace(",", "." if len(tail) == 2 else "")
+    else:
+        separator = "," if has_comma else "." if has_dot else None
+        if separator and (cleaned.count(separator) > 1 or _is_grouping(cleaned)):
+            # "1,234,567" / "1.234.567", or a lone "1.234" / "12,500":
+            # thousands grouping, not a decimal point.
+            cleaned = cleaned.replace(separator, "")
+        elif separator == ",":
+            cleaned = cleaned.replace(",", ".")  # European decimal: "12,50"
 
     try:
         return round(float(cleaned), 2)
     except ValueError:
         return None
+
+
+_GROUPED = re.compile(r"^-?[1-9]\d{0,2}[.,]\d{3}$")
+
+
+def _is_grouping(cleaned: str) -> bool:
+    """One separator, 1–3 leading digits (not a lone 0), exactly 3 after:
+    that shape is a thousands group. "0.500" and "12.50" stay decimals."""
+    return bool(_GROUPED.match(cleaned))
+
+
+def is_ambiguous_amount(raw: float | int | str | None) -> bool:
+    """True for strings like "1.234" or "1,234": read as 1234 by
+    parse_amount, but a reader from the other convention might mean 1.234 —
+    worth asking the user to double-check."""
+    if not isinstance(raw, str):
+        return False
+    return _is_grouping(_NUMERIC_RE.sub("", raw).strip())

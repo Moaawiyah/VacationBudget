@@ -18,8 +18,9 @@ class LineItem(BaseModel):
 
 
 class Warning(BaseModel):
+    code: str  # stable identifier the web app translates; see app.validation.warnings
     field: str
-    message: str
+    message: str  # English detail for developers — not shown to users
     severity: str = "warning"  # "warning" | "error"
 
 

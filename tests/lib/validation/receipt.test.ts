@@ -16,7 +16,14 @@ function validPayload() {
       line_items: [
         { description: "Coffee", icon: "☕", quantity: 1, unit_price: 3, total_price: 3 },
       ],
-      warnings: [{ field: "merchant", message: "Low confidence", severity: "warning" }],
+      warnings: [
+        {
+          code: "low_confidence",
+          field: "merchant",
+          message: "Low confidence",
+          severity: "warning",
+        },
+      ],
       raw_ocr_text: "CAFE ROMA\nTOTALE 12,50",
       confidence: 0.8,
     },
@@ -47,7 +54,7 @@ describe("analyzeReceiptResponseSchema", () => {
   it("rejects an invalid warning severity", () => {
     const payload = validPayload();
     payload.receipt.warnings = [
-      { field: "x", message: "y", severity: "critical" as "warning" },
+      { code: "x", field: "x", message: "y", severity: "critical" as "warning" },
     ];
     expect(analyzeReceiptResponseSchema.safeParse(payload).success).toBe(false);
   });

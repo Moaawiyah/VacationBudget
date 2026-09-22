@@ -7,6 +7,7 @@ import { ExpenseForm } from "@/components/expenses/expense-form";
 import { useRequestId } from "@/components/expenses/use-request-id";
 import { useDictionary } from "@/components/i18n/locale-provider";
 import { mapReceiptToExpenseDefaults } from "@/lib/receipts/map-to-expense";
+import { warningMessages } from "@/lib/receipts/receipt-warnings";
 import type { Category } from "@/types/category";
 import type { ExtractedReceipt } from "@/types/receipt";
 import { Button } from "@/components/ui/button";
@@ -77,8 +78,8 @@ export function ReceiptPreviewForm({
             {dict.reviewNeeded}
           </p>
           <ul className="list-inside list-disc">
-            {receipt.warnings.map((warning, index) => (
-              <li key={index}>{warning.message}</li>
+            {warningMessages(receipt.warnings, dict.warnings).map((message) => (
+              <li key={message}>{message}</li>
             ))}
           </ul>
         </div>

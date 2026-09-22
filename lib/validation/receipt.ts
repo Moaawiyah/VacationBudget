@@ -15,6 +15,7 @@ const lineItemSchema = z.object({
 });
 
 const warningSchema = z.object({
+  code: z.string(),
   field: z.string(),
   message: z.string(),
   severity: z.enum(["warning", "error"]),

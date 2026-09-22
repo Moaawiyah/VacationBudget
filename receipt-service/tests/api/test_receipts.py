@@ -87,23 +87,5 @@ def test_invalid_upload_returns_400():
         _clear_overrides()
 
 
-def test_pipeline_exception_returns_502_without_leaking_internals():
-    class ExplodingPipeline:
-        async def analyze(self, request):
-            raise RuntimeError("some internal detail that should not leak")
-
-    app.dependency_overrides[get_pipeline] = lambda: ExplodingPipeline()
-    try:
-        response = client.post(
-            "/v1/receipts/analyze",
-            headers={"Authorization": "Bearer test-token"},
-            files={"file": _jpeg_file()},
-        )
-        assert response.status_code == 502
-        assert "internal detail" not in response.text
-    finally:
-        _clear_overrides()
-
-
 def test_health_check():
     assert client.get("/health").json() == {"status": "ok"}

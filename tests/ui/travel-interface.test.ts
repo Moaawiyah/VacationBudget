@@ -96,7 +96,8 @@ describe("travel interface", () => {
     expect(idle).toContain(en.travel.alignReceipt);
     expect(busy).toContain('aria-busy="true"');
     expect(busy).toContain('role="status"');
-    expect(busy).toContain(en.travel.processing);
+    // The first analysis stage; later stages follow while the request runs.
+    expect(busy).toContain(en.receipts.stageUploading);
   });
 
   it("renders an empty category state without invalid chart values", () => {

@@ -13,7 +13,13 @@ _HEIF_EXTENSIONS = {".heic", ".heif"}
 
 
 class UploadValidationError(ValueError):
-    """Raised when an uploaded file fails validation; message is user-facing."""
+    """Raised when an uploaded file fails validation. `code` is what the API
+    reports: "image_too_large" (413) or "unsupported_image" (400)."""
+
+    def __init__(self, message: str, code: str = "unsupported_image") -> None:
+        super().__init__(message)
+        self.code = code
+        self.status = 413 if code == "image_too_large" else 400
 
 
 def _ensure_heif_support() -> None:
@@ -41,7 +47,8 @@ def validate_upload(
         raise UploadValidationError("Empty file")
     if len(data) > max_bytes:
         raise UploadValidationError(
-            f"File exceeds the {max_bytes // (1024 * 1024)}MB limit"
+            f"File exceeds the {max_bytes // (1024 * 1024)}MB limit",
+            "image_too_large",
         )
 
     extension = _extension_of(filename)
@@ -58,7 +65,7 @@ def validate_upload(
         # without ever allocating its bitmap. Kept below PIL's own
         # MAX_IMAGE_PIXELS so the explicit check always fires first.
         if image.width * image.height > max_pixels:
-            raise UploadValidationError("Image resolution is too high")
+            raise UploadValidationError("Image resolution is too high", "image_too_large")
         image.verify()  # Detects truncated/corrupt files; consumes the handle.
         image = Image.open(io.BytesIO(data))  # Re-open: verify() leaves it unusable.
         image.load()
@@ -86,7 +93,8 @@ async def read_upload(file: UploadFile, max_bytes: int) -> bytes:
         total += len(chunk)
         if total > max_bytes:
             raise UploadValidationError(
-                f"File exceeds the {max_bytes // (1024 * 1024)}MB limit"
+                f"File exceeds the {max_bytes // (1024 * 1024)}MB limit",
+                "image_too_large",
             )
         chunks.append(chunk)
     return b"".join(chunks)

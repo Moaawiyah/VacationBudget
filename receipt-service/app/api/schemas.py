@@ -12,4 +12,8 @@ class AnalyzeReceiptResponse(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    error: str
+    """Every non-2xx body. `code` is stable and machine-readable (the web app
+    translates it); `message` is English for developers."""
+
+    code: str
+    message: str

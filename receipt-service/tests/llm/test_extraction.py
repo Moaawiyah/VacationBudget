@@ -1,5 +1,6 @@
 import pytest
 
+from app.llm.errors import LLMUnavailable
 from app.llm.extraction import extract
 from app.llm.provider import LLMProvider
 
@@ -47,10 +48,12 @@ async def test_non_object_json_produces_warning():
 
 
 @pytest.mark.asyncio
-async def test_provider_failure_produces_warning_not_crash():
-    provider = FakeProvider(RuntimeError("network down"))
-    raw, warnings = await extract(provider, "ocr text")
-    assert warnings == ["llm_unavailable"]
+async def test_provider_failure_propagates_for_the_caller_to_report():
+    """No completion means nothing to review — the API turns this into
+    "analysis temporarily unavailable" rather than an empty review form."""
+    provider = FakeProvider(LLMUnavailable("network down"))
+    with pytest.raises(LLMUnavailable):
+        await extract(provider, "ocr text")
 
 
 @pytest.mark.asyncio
@@ -91,3 +94,25 @@ async def test_allowed_categories_are_offered_to_the_model():
     assert "Transport" in captured["user"]
     # Kept in its own delimited block, like the OCR text — it's user data too.
     assert "<allowed_categories>" in captured["user"]
+
+
+@pytest.mark.asyncio
+async def test_one_malformed_field_does_not_discard_the_rest():
+    """A strict schema would reject the whole response over one bad value —
+    losing the merchant and total along with it."""
+    payload = (
+        '{"merchant": "Trattoria", "total": "31,00", "line_items": ['
+        '{"description": "Pizza", "total_price": "12,50"},'
+        '"not an item",'
+        '{"description": "Sconto", "total_price": "-2,00", "quantity": ["?"]}],'
+        '"taxes": null, "uncertain_fields": "total", "detected_language": 7}'
+    )
+    raw, warnings = await extract(FakeProvider(payload), "ocr text")
+    assert warnings == []
+    assert raw.merchant == "Trattoria"
+    assert raw.total == "31,00"
+    assert [i.description for i in raw.line_items] == ["Pizza", "Sconto"]
+    assert raw.line_items[1].total_price == "-2,00"
+    assert raw.line_items[1].quantity is None  # just that field dropped
+    assert raw.taxes == [] and raw.uncertain_fields == []
+    assert raw.detected_language is None

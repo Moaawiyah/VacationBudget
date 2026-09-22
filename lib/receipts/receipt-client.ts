@@ -1,8 +1,10 @@
 import { logger } from "@/lib/logger";
 import { analyzeReceiptResponseSchema } from "@/lib/validation/receipt";
 import type { ExtractedReceipt } from "@/types/receipt";
+import { receiptErrorCode, type ReceiptErrorCode } from "./receipt-errors";
 
-export type AnalyzeReceiptResult = { receipt: ExtractedReceipt } | { error: string };
+export type AnalyzeReceiptResult =
+  { receipt: ExtractedReceipt } | { code: ReceiptErrorCode };
 
 const TIMEOUT_MS = 60_000;
 
@@ -21,7 +23,7 @@ export async function analyzeReceipt(
   const token = process.env.RECEIPT_SERVICE_TOKEN;
   if (!url || !token) {
     logger.error("receipts.analyze failed", { error: "Receipt service not configured" });
-    return { error: "Receipt scanning is not available right now." };
+    return { code: "analysis_unavailable" };
   }
 
   const form = new FormData();
@@ -41,24 +43,31 @@ export async function analyzeReceipt(
       signal: controller.signal,
     });
     if (!response.ok) {
-      logger.error("receipts.analyze failed", { status: response.status });
-      if (response.status === 429) {
-        return { error: "Too many receipts scanned. Wait a moment and try again." };
-      }
-      return { error: "Could not read that receipt. Try a clearer photo." };
+      // The body is receipt-service's { code, message } — no receipt content.
+      const body: unknown = await response.json().catch(() => null);
+      const code = receiptErrorCode(response.status, body);
+      const serviceCode =
+        body && typeof body === "object" && "code" in body ? body.code : null;
+      logger.error("receipts.analyze failed", {
+        status: response.status,
+        serviceCode,
+        code,
+      });
+      return { code };
     }
 
     const parsed = analyzeReceiptResponseSchema.safeParse(await response.json());
     if (!parsed.success) {
       logger.error("receipts.analyze failed", { error: "Malformed response shape" });
-      return { error: "Could not read that receipt. Try a clearer photo." };
+      return { code: "unknown" };
     }
     return { receipt: parsed.data.receipt };
   } catch (error) {
     logger.error("receipts.analyze failed", {
       error: error instanceof Error ? error.message : String(error),
     });
-    return { error: "Could not reach the receipt scanner. Try again." };
+    // Includes our own abort at TIMEOUT_MS: the service outlived its deadline.
+    return { code: "analysis_unavailable" };
   } finally {
     clearTimeout(timeout);
   }

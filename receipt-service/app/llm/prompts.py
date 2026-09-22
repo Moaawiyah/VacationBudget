@@ -27,7 +27,9 @@ commentary, no extra keys), matching exactly this shape:
   "date": string or null (exactly as it appears on the receipt),
   "total": number or null,
   "subtotal": number or null,
-  "tax": number or null,
+  "tax": number or null (the total tax amount),
+  "taxes": [ { "rate": number or null (percent, e.g. 22), "amount": number or null } ]
+    (one entry per VAT/tax rate printed on the receipt; [] if none are listed),
   "currency": string or null (a symbol or code as it appears, e.g. "$", "EUR"),
   "line_items": [ { "description": string, "quantity": number or null,
     "unit_price": number or null, "total_price": number or null,

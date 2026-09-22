@@ -6,6 +6,8 @@ fakes and never imports heavy ML libraries itself.
 import logging
 from dataclasses import dataclass, field
 
+from app.errors import AnalysisUnavailable, ReceiptUnreadable
+from app.llm.errors import LLMError
 from app.llm.extraction import extract
 from app.llm.provider import LLMProvider
 from app.models.receipt import ExtractedReceipt
@@ -16,6 +18,11 @@ from app.validation.receipt_validator import validate_extraction
 from app.vision.pipeline import preprocess_receipt
 
 logger = logging.getLogger(__name__)
+
+# Below this, OCR found effectively nothing: a real receipt has at least a
+# merchant and a total. Sending near-empty text to the LLM only invites it to
+# invent a plausible-looking receipt.
+MIN_OCR_CHARS = 8
 
 
 @dataclass
@@ -52,9 +59,20 @@ class ReceiptPipeline:
         )
         prepared = preprocess_receipt(image)
         ocr_result = self._ocr.recognize(prepared, request.language_hint or "en")
-        raw, warnings = await extract(
-            self._llm, ocr_result.text, request.language_hint, request.categories
-        )
+        if len(ocr_result.text.strip()) < MIN_OCR_CHARS:
+            logger.info(
+                "receipt unreadable", extra={"fields": {"ocr_chars": len(ocr_result.text)}}
+            )
+            raise ReceiptUnreadable()
+        try:
+            raw, warnings = await extract(
+                self._llm, ocr_result.text, request.language_hint, request.categories
+            )
+        except LLMError as exc:
+            # Retries already happened inside the provider; this is final.
+            fields = {"kind": type(exc).__name__, "error": str(exc)}
+            logger.error("LLM failed", extra={"fields": fields})
+            raise AnalysisUnavailable() from exc
         receipt = validate_extraction(raw, ocr_result.text, warnings, request.categories)
         _log_outcome(ocr_result.engine, len(ocr_result.text), warnings, receipt)
         return receipt

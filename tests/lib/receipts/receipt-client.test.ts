@@ -40,7 +40,7 @@ describe("analyzeReceipt", () => {
 
     const result = await analyzeReceipt(file);
 
-    expect(result).toEqual({ error: "Receipt scanning is not available right now." });
+    expect(result).toEqual({ code: "analysis_unavailable" });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -96,11 +96,17 @@ describe("analyzeReceipt", () => {
     muteErrorLog();
     vi.stubEnv("RECEIPT_SERVICE_URL", "http://receipt-service:8000");
     vi.stubEnv("RECEIPT_SERVICE_TOKEN", "secret-token");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 502 }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 422,
+        json: async () => ({ code: "receipt_unreadable", message: "No readable text" }),
+      }),
+    );
 
-    expect(await analyzeReceipt(file)).toEqual({
-      error: "Could not read that receipt. Try a clearer photo.",
-    });
+    // The service's own code passes through, for the page to translate.
+    expect(await analyzeReceipt(file)).toEqual({ code: "receipt_unreadable" });
   });
 
   it("returns a friendly error when the response body doesn't match the schema", async () => {
@@ -112,9 +118,7 @@ describe("analyzeReceipt", () => {
       vi.fn().mockResolvedValue({ ok: true, json: async () => ({ nonsense: true }) }),
     );
 
-    expect(await analyzeReceipt(file)).toEqual({
-      error: "Could not read that receipt. Try a clearer photo.",
-    });
+    expect(await analyzeReceipt(file)).toEqual({ code: "unknown" });
   });
 
   it("returns a friendly error when the request throws (network failure)", async () => {
@@ -123,8 +127,6 @@ describe("analyzeReceipt", () => {
     vi.stubEnv("RECEIPT_SERVICE_TOKEN", "secret-token");
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("ECONNREFUSED")));
 
-    expect(await analyzeReceipt(file)).toEqual({
-      error: "Could not reach the receipt scanner. Try again.",
-    });
+    expect(await analyzeReceipt(file)).toEqual({ code: "analysis_unavailable" });
   });
 });

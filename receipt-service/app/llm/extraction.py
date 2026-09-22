@@ -10,8 +10,9 @@ import json
 import logging
 import re
 
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
+from app.llm.lenient import LenientModel
 from app.llm.prompts import SYSTEM_PROMPT, build_user_prompt
 from app.llm.provider import LLMProvider
 
@@ -20,19 +21,28 @@ logger = logging.getLogger(__name__)
 _FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
 
 
-class RawLineItem(BaseModel):
+class RawLineItem(LenientModel):
     """Extra keys the model invents are ignored by default (Pydantic v2) —
     this schema is also what stops a prompt-injected field from ever
     reaching the rest of the app as anything but inert data."""
 
     description: str = ""
-    quantity: float | None = None
-    unit_price: float | None = None
-    total_price: float | None = None
+    # Strings allowed: models often echo prices as printed ("12,50"), and
+    # app.validation parses both forms deterministically.
+    quantity: float | str | None = None
+    unit_price: float | str | None = None
+    total_price: float | str | None = None
     icon: str | None = None
 
 
-class RawExtraction(BaseModel):
+class RawTax(LenientModel):
+    """One tax line — receipts with several VAT rates list each separately."""
+
+    rate: float | str | None = None
+    amount: float | str | None = None
+
+
+class RawExtraction(LenientModel):
     """Whatever the LLM claims — every field optional, nothing trusted yet."""
 
     detected_language: str | None = None
@@ -42,6 +52,7 @@ class RawExtraction(BaseModel):
     total: float | str | None = None
     subtotal: float | str | None = None
     tax: float | str | None = None
+    taxes: list[RawTax] = []
     currency: str | None = None
     category: str | None = None
     line_items: list[RawLineItem] = []
@@ -54,14 +65,17 @@ async def extract(
     language_hint: str | None = None,
     categories: list[str] | None = None,
 ) -> tuple[RawExtraction, list[str]]:
-    """Returns the best-effort parsed extraction, plus extraction-stage warnings."""
-    try:
-        completion = await provider.complete(
-            SYSTEM_PROMPT, build_user_prompt(ocr_text, language_hint, categories)
-        )
-    except Exception:
-        logger.exception("LLM completion failed")
-        return RawExtraction(), ["llm_unavailable"]
+    """Returns the best-effort parsed extraction, plus extraction-stage warnings.
+
+    A provider *failure* (app.llm.errors.LLMError — timeout, outage, rejected
+    request) propagates: there is no extraction to review, and the caller
+    turns it into "analysis temporarily unavailable". A provider that answers
+    with unusable output is different — that's reported as a warning, and the
+    user still gets the review form to fill in.
+    """
+    completion = await provider.complete(
+        SYSTEM_PROMPT, build_user_prompt(ocr_text, language_hint, categories)
+    )
 
     cleaned = _FENCE_RE.sub("", completion).strip()
     try:

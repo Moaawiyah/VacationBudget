@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { ScanLine, LoaderCircle, Receipt } from "lucide-react";
 import { useDictionary } from "@/components/i18n/locale-provider";
+import { useReceiptStage } from "./use-receipt-stage";
 
 export function ReceiptScanner({
   file,
@@ -13,6 +14,7 @@ export function ReceiptScanner({
 }) {
   const copy = useDictionary();
   const dict = copy.receipts;
+  const stage = useReceiptStage(pending);
   const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(
     () => () => {
@@ -52,7 +54,7 @@ export function ReceiptScanner({
         ) : (
           <ScanLine aria-hidden className="size-4" />
         )}
-        {pending ? copy.travel.processing : file ? file.name : copy.travel.alignReceipt}
+        {pending ? dict[stage] : file ? file.name : copy.travel.alignReceipt}
       </div>
     </div>
   );

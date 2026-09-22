@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { analyzeReceipt } from "@/lib/receipts/receipt-client";
+import {
+  statusForReceiptError,
+  type ReceiptErrorCode,
+} from "@/lib/receipts/receipt-errors";
 import { rateLimit } from "@/lib/rate-limit";
 import { getSdk } from "@/lib/sdk/server";
 
@@ -16,10 +20,15 @@ const RATE_WINDOW_MS = 60_000;
  * delegating to receipt-service), so that service never needs to know about
  * Supabase sessions or which user owns which trip.
  */
+/** Every failure is `{ code }`; the page translates it (lib/receipts/receipt-errors). */
+function failure(code: ReceiptErrorCode) {
+  return NextResponse.json({ code }, { status: statusForReceiptError(code) });
+}
+
 export async function POST(request: Request) {
   const sdk = await getSdk();
   const user = await sdk.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ code: "unauthorized" }, { status: 401 });
 
   const { allowed, retryAfterSeconds } = rateLimit(
     `receipts:${user.id}`,
@@ -28,7 +37,7 @@ export async function POST(request: Request) {
   );
   if (!allowed) {
     return NextResponse.json(
-      { error: "Too many requests" },
+      { code: "rate_limited" },
       { status: 429, headers: { "Retry-After": String(retryAfterSeconds) } },
     );
   }
@@ -39,20 +48,19 @@ export async function POST(request: Request) {
   const languageHint = formData.get("languageHint");
 
   if (typeof tripId !== "string" || !tripId) {
-    return NextResponse.json({ error: "Missing tripId" }, { status: 400 });
+    return failure("not_found");
   }
   const canAccessTrip = (await sdk.trips.accessibleBaseCurrency(tripId)) !== null;
   if (!canAccessTrip) {
-    return NextResponse.json({ error: "Trip not found" }, { status: 404 });
+    return failure("not_found");
   }
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Missing file" }, { status: 400 });
+    return failure("unsupported_image");
   }
-  if (file.size === 0 || file.size > MAX_BYTES) {
-    return NextResponse.json({ error: "File is empty or too large" }, { status: 400 });
-  }
+  if (file.size === 0) return failure("unsupported_image");
+  if (file.size > MAX_BYTES) return failure("image_too_large");
   if (!ALLOWED_TYPES.has(file.type)) {
-    return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });
+    return failure("unsupported_image");
   }
 
   // The user's own categories go to receipt-service so the LLM can pick one
@@ -65,6 +73,6 @@ export async function POST(request: Request) {
     typeof languageHint === "string" ? languageHint : undefined,
     categories.map((category) => category.name),
   );
-  if ("error" in result) return NextResponse.json(result, { status: 502 });
+  if ("code" in result) return failure(result.code);
   return NextResponse.json(result);
 }

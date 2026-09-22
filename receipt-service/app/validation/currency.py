@@ -48,3 +48,13 @@ def normalize_currency(raw: str | None) -> tuple[str | None, bool]:
         return mapped, True
 
     return None, False
+
+
+# Symbols shared by several supported currencies: "$" is USD but also AUD,
+# CAD and MXN; "¥" is JPY here but also CNY. The mapping above picks the most
+# common reading, and the review screen asks the user to confirm it.
+_AMBIGUOUS_SYMBOLS = {"$", "¥"}
+
+
+def is_ambiguous_currency(raw: str | None) -> bool:
+    return bool(raw) and raw.strip() in _AMBIGUOUS_SYMBOLS

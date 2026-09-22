@@ -1,36 +1,10 @@
-import io
-
 import pytest
-from PIL import Image
 
-from app.llm.provider import LLMProvider
-from app.ocr.engine import OcrEngine, OcrResult
+from app.ocr.engine import OcrResult
 from app.pipeline import AnalyzeRequest, ReceiptPipeline
 from app.upload.validator import UploadValidationError
-
-
-class StubOcrEngine(OcrEngine):
-    def recognize(self, image, language):
-        return OcrResult(text="CAFE ROMA\nTOTAL 11.00", engine="stub", confidence=0.9)
-
-
-class StubOcrService:
-    def recognize(self, image, language):
-        return StubOcrEngine().recognize(image, language)
-
-
-class StubLLMProvider(LLMProvider):
-    def __init__(self, response: str):
-        self._response = response
-
-    async def complete(self, system_prompt: str, user_prompt: str) -> str:
-        return self._response
-
-
-def _jpeg_bytes() -> bytes:
-    buffer = io.BytesIO()
-    Image.new("RGB", (50, 50), color="white").save(buffer, format="JPEG")
-    return buffer.getvalue()
+from tests.stubs import StubLLMProvider, StubOcrService
+from tests.stubs import jpeg_bytes as _jpeg_bytes
 
 
 @pytest.mark.asyncio

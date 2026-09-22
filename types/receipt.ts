@@ -9,6 +9,8 @@ export type ReceiptLineItem = {
 };
 
 export type ReceiptWarning = {
+  /** Stable id the UI translates (receipt-service app/validation/warnings.py). */
+  code: string;
   field: string;
   message: string;
   severity: "warning" | "error";

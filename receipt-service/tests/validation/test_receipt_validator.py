@@ -33,13 +33,13 @@ def test_missing_total_is_an_error_warning_and_lowers_confidence():
 def test_subtotal_plus_tax_mismatch_is_flagged():
     raw = RawExtraction(total=100.0, subtotal=50.0, tax=10.0)
     receipt = validate_extraction(raw, "", [])
-    assert any("does not match total" in w.message for w in receipt.warnings)
+    assert any(w.code == "totals_mismatch" for w in receipt.warnings)
 
 
 def test_subtotal_plus_tax_within_tolerance_is_not_flagged():
     raw = RawExtraction(total=11.0, subtotal=10.0, tax=1.005)
     receipt = validate_extraction(raw, "", [])
-    assert not any("does not match total" in w.message for w in receipt.warnings)
+    assert not any(w.code == "totals_mismatch" for w in receipt.warnings)
 
 
 def test_unrecognized_currency_is_flagged_and_dropped():
@@ -52,7 +52,7 @@ def test_unrecognized_currency_is_flagged_and_dropped():
 def test_llm_stage_warnings_are_carried_through_as_errors():
     receipt = validate_extraction(RawExtraction(), "", ["llm_malformed_output"])
     assert any(
-        w.field == "llm" and w.severity == "error" and w.message == "llm_malformed_output"
+        w.field == "llm" and w.severity == "error" and w.code == "llm_malformed_output"
         for w in receipt.warnings
     )
 

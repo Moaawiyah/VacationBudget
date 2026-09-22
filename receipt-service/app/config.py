@@ -16,7 +16,11 @@ class Settings(BaseSettings):
     groq_api_key: str = ""
     groq_model: str = "openai/gpt-oss-20b"
     groq_base_url: str = "https://api.groq.com/openai/v1"
-    groq_timeout_seconds: float = 30.0
+    # Per attempt. Retries (timeouts, 429s, 5xx only) are capped by count
+    # and by an overall deadline under the web app's 60s request timeout.
+    groq_timeout_seconds: float = 20.0
+    llm_max_attempts: int = 3
+    llm_deadline_seconds: float = 45.0
 
     # Shared secret the Next.js server sends as `Authorization: Bearer
     # <token>`. Left empty by default so the service fails closed (see

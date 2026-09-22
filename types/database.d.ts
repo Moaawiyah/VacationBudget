@@ -146,6 +146,8 @@ export type Database = {
           location: string | null;
           notes: string | null;
           client_request_id: string | null;
+          paid_by: string;
+          split_method: "equal" | "exact" | "percentage";
           created_at: string;
           updated_at: string;
         };
@@ -164,6 +166,8 @@ export type Database = {
           location?: string | null;
           notes?: string | null;
           client_request_id?: string | null;
+          paid_by?: string;
+          split_method?: "equal" | "exact" | "percentage";
           created_at?: string;
           updated_at?: string;
         };
@@ -182,6 +186,8 @@ export type Database = {
           location?: string | null;
           notes?: string | null;
           client_request_id?: string | null;
+          paid_by?: string;
+          split_method?: "equal" | "exact" | "percentage";
           created_at?: string;
           updated_at?: string;
         };
@@ -195,6 +201,82 @@ export type Database = {
           },
           {
             foreignKeyName: "expenses_trip_id_fkey";
+            columns: ["trip_id"];
+            isOneToOne: false;
+            referencedRelation: "trips";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      expense_splits: {
+        Row: {
+          expense_id: string;
+          user_id: string;
+          share_amount: string;
+          share_percent: string | null;
+          created_at: string;
+        };
+        Insert: {
+          expense_id: string;
+          user_id: string;
+          share_amount: number;
+          share_percent?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          expense_id?: string;
+          user_id?: string;
+          share_amount?: number;
+          share_percent?: number | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "expense_splits_expense_id_fkey";
+            columns: ["expense_id"];
+            isOneToOne: false;
+            referencedRelation: "expenses";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      settlements: {
+        Row: {
+          id: string;
+          trip_id: string;
+          from_user_id: string;
+          to_user_id: string;
+          amount: string;
+          note: string | null;
+          created_by: string;
+          client_request_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          trip_id: string;
+          from_user_id: string;
+          to_user_id: string;
+          amount: number;
+          note?: string | null;
+          created_by: string;
+          client_request_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          trip_id?: string;
+          from_user_id?: string;
+          to_user_id?: string;
+          amount?: number;
+          note?: string | null;
+          created_by?: string;
+          client_request_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "settlements_trip_id_fkey";
             columns: ["trip_id"];
             isOneToOne: false;
             referencedRelation: "trips";
@@ -246,7 +328,36 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      create_expense: {
+        Args: {
+          p_trip_id: string;
+          p_expense: Record<string, unknown>;
+          p_splits: Record<string, unknown>[];
+          p_request_id?: string | null;
+        };
+        Returns: string;
+      };
+      update_expense: {
+        Args: {
+          p_expense_id: string;
+          p_expense: Record<string, unknown>;
+          p_splits?: Record<string, unknown>[] | null;
+        };
+        Returns: undefined;
+      };
+      record_settlement: {
+        Args: {
+          p_trip_id: string;
+          p_from_user_id: string;
+          p_to_user_id: string;
+          p_amount: number;
+          p_note?: string | null;
+          p_request_id?: string | null;
+        };
+        Returns: string;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

@@ -68,50 +68,51 @@ export class ExpenseService extends BaseService {
   }
 
   /**
-   * `requestId` identifies one "create" intent. If that same intent arrives
-   * again — a double tap, or the automatic Server Action retry after a
-   * dropped connection (next.config.ts `useOffline`) — the per-user unique
-   * index rejects the duplicate and this reports success: the expense the
-   * caller asked for already exists.
+   * Creates the expense and its split atomically (create_expense, 0014) —
+   * every expense needs a balanced expense_splits row, and the client can't
+   * otherwise run both inserts in one transaction. Until the splitting UI
+   * (Stage 9) can name real participants, the whole amount is a single
+   * 100%-share row for the payer — exactly today's un-split behavior.
+   *
+   * `requestId` identifies one "create" intent; create_expense returns the
+   * same id for a repeated one (a double tap, or the automatic Server Action
+   * retry after a dropped connection) instead of creating a second expense.
    */
   async create(
     scope: ExpenseScope,
     input: ExpenseInput,
     requestId?: string,
   ): Promise<WriteResult> {
-    const { error } = await this.db.from("expenses").insert({
-      trip_id: scope.tripId,
-      user_id: scope.userId,
-      client_request_id: requestId ?? null,
-      ...toExpenseRow(input, scope.baseCurrency),
+    const { error } = await this.db.rpc("create_expense", {
+      p_trip_id: scope.tripId,
+      p_expense: { ...toExpenseRow(input, scope.baseCurrency), paid_by: scope.userId, split_method: "equal" },
+      p_splits: [{ user_id: scope.userId, share_amount: input.amount, share_percent: null }],
+      p_request_id: requestId ?? null,
     });
-    const isReplay = Boolean(requestId) && error?.code === "23505";
-    if (error && !isReplay) return this.fail("create", error);
+    if (error) return this.fail("create", error);
     this.invalidate();
     return {};
   }
 
   /**
-   * Who may change an expense is decided by RLS (0009: its author, or the
-   * trip owner). A blocked update matches zero rows rather than erroring, so
-   * the affected rows are read back — otherwise a refused edit would look
-   * saved.
+   * Who may change an expense is decided by RLS (0009 + 0014: its author,
+   * its payer, or the trip owner). update_expense (0014) re-asserts the
+   * single-payer split alongside the amount, so an edited amount can't leave
+   * a stale share behind — a real split (Stage 9) will pass the actual
+   * shares here instead. A blocked update raises 42501 (0014), which maps
+   * to the same permission_denied code a refused row match used to.
    */
   async update(
     scope: ExpenseScope,
     expenseId: string,
     input: ExpenseInput,
   ): Promise<WriteResult> {
-    const { data, error } = await this.db
-      .from("expenses")
-      .update(toExpenseRow(input, scope.baseCurrency))
-      // Scoped by trip_id too, so a URL pairing this trip with another of the
-      // user's expenses can't reprice that expense in this trip's currency.
-      .eq("id", expenseId)
-      .eq("trip_id", scope.tripId)
-      .select("id");
+    const { error } = await this.db.rpc("update_expense", {
+      p_expense_id: expenseId,
+      p_expense: toExpenseRow(input, scope.baseCurrency),
+      p_splits: [{ user_id: scope.userId, share_amount: input.amount, share_percent: null }],
+    });
     if (error) return this.fail("update", error);
-    if (!data?.length) return this.refused("update");
     this.invalidate();
     return {};
   }

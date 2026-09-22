@@ -6,6 +6,7 @@ export type FakeResult = {
   error?: { message: string; code?: string } | null;
 };
 export type FakeCall = { table: string; method: string; args: unknown[] };
+export type FakeRpcCall = { fn: string; args: unknown };
 
 const BUILDER_METHODS = [
   "select",
@@ -25,10 +26,17 @@ const BUILDER_METHODS = [
  * that records every call and, when awaited, resolves to the next queued
  * result for that table — `{ data: null, error: null }` once the queue is empty.
  */
-export function createFakeDb(results: Record<string, FakeResult[]> = {}) {
+export function createFakeDb(
+  results: Record<string, FakeResult[]> = {},
+  rpcResults: Record<string, FakeResult[]> = {},
+) {
   const calls: FakeCall[] = [];
+  const rpcCalls: FakeRpcCall[] = [];
   const queues = new Map(
     Object.entries(results).map(([table, list]) => [table, [...list]]),
+  );
+  const rpcQueues = new Map(
+    Object.entries(rpcResults).map(([fn, list]) => [fn, [...list]]),
   );
 
   function query(table: string) {
@@ -59,8 +67,13 @@ export function createFakeDb(results: Record<string, FakeResult[]> = {}) {
     signUp: vi.fn(),
   };
   const from = vi.fn((table: string) => query(table));
-  const db = { from, auth } as unknown as DbClient;
-  return { db, from, auth, calls };
+  const rpc = vi.fn((fn: string, args?: unknown) => {
+    rpcCalls.push({ fn, args });
+    const result = rpcQueues.get(fn)?.shift() ?? {};
+    return Promise.resolve({ data: result.data ?? null, error: result.error ?? null });
+  });
+  const db = { from, auth, rpc } as unknown as DbClient;
+  return { db, from, auth, calls, rpc, rpcCalls };
 }
 
 /** The recorded calls for one table and method, e.g. every `.eq()` on "trips". */

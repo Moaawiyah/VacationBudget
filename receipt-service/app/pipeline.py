@@ -55,4 +55,36 @@ class ReceiptPipeline:
         raw, warnings = await extract(
             self._llm, ocr_result.text, request.language_hint, request.categories
         )
-        return validate_extraction(raw, ocr_result.text, warnings, request.categories)
+        receipt = validate_extraction(raw, ocr_result.text, warnings, request.categories)
+        _log_outcome(ocr_result.engine, len(ocr_result.text), warnings, receipt)
+        return receipt
+
+
+def _log_outcome(
+    ocr_engine: str, ocr_chars: int, llm_warnings: list[str], receipt: ExtractedReceipt
+) -> None:
+    """Records which stage produced what — shape only, never contents.
+
+    Receipts carry personal data (card fragments, addresses, what someone
+    bought), so the log holds counts and flags: enough to tell an OCR failure
+    from an LLM failure from a validation rejection, and nothing more.
+    """
+    logger.info(
+        "receipt analyzed",
+        extra={
+            "fields": {
+                "ocr_engine": ocr_engine,
+                "ocr_chars": ocr_chars,
+                "llm_warnings": llm_warnings,
+                "line_items": len(receipt.line_items),
+                "items_with_icon": sum(
+                    1 for item in receipt.line_items if item.icon != FALLBACK_ICON
+                ),
+                "has_merchant": receipt.merchant is not None,
+                "has_total": receipt.total is not None,
+                "has_category": receipt.category is not None,
+                "warning_fields": sorted({w.field for w in receipt.warnings}),
+                "confidence": receipt.confidence,
+            }
+        },
+    )

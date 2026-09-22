@@ -66,7 +66,12 @@ def validate_upload(
         # Re-raise as-is (e.g. the resolution message) — it subclasses
         # ValueError, so the generic handler below would otherwise swallow it.
         raise
-    except (UnidentifiedImageError, Image.DecompressionBombError, OSError, ValueError) as exc:
+    except (
+        UnidentifiedImageError,
+        Image.DecompressionBombError,
+        OSError,
+        ValueError,
+    ) as exc:
         raise UploadValidationError("File is not a valid image") from exc
 
     return image.convert("RGB")

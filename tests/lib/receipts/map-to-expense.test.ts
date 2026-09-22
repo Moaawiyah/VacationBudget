@@ -52,20 +52,20 @@ describe("mapReceiptToExpenseDefaults", () => {
     expect(mapReceiptToExpenseDefaults(receipt({ merchant: null }), "EUR").description).toBeUndefined();
   });
 
-  it("composes notes from subtotal, tax and line items", () => {
+  it("puts only the items, each with its icon, in the notes", () => {
     const defaults = mapReceiptToExpenseDefaults(
       receipt({
         subtotal: 10,
         tax: 1,
+        detected_language: "it",
+        translation: "Total: 10 euros",
         line_items: [
           { description: "Coffee", icon: "☕", quantity: 1, unit_price: 3, total_price: 3 },
         ],
       }),
       "EUR",
     );
-    expect(defaults.notes).toContain("Subtotal: 10");
-    expect(defaults.notes).toContain("Tax/VAT: 1");
-    expect(defaults.notes).toContain("☕ Coffee — 3");
+    expect(defaults.notes).toBe("☕ Coffee — 3");
   });
 
   it("shows each item's icon and includes quantity only when it isn't 1", () => {
@@ -90,40 +90,17 @@ describe("mapReceiptToExpenseDefaults", () => {
       unit_price: 9.99,
       total_price: 9.99,
     }));
-    const defaults = mapReceiptToExpenseDefaults(
-      receipt({ line_items: manyItems, subtotal: 999, tax: 99 }),
-      "EUR",
-    );
+    const defaults = mapReceiptToExpenseDefaults(receipt({ line_items: manyItems }), "EUR");
     expect(defaults.notes!.length).toBeLessThanOrEqual(NOTES_MAX_LENGTH);
-    expect(defaults.notes).toContain("more");
+    expect(defaults.notes).toMatch(/…and \d+ more$/);
   });
 
-  it("includes the translation only when the receipt isn't already English", () => {
-    const translated = mapReceiptToExpenseDefaults(
-      receipt({ detected_language: "it", translation: "Total: 10 euros" }),
-      "EUR",
-    );
-    expect(translated.notes).toContain("Translation: Total: 10 euros");
 
-    const english = mapReceiptToExpenseDefaults(
-      receipt({ detected_language: "en", translation: "Total: 10 euros" }),
-      "EUR",
-    );
-    expect(english.notes).toBeUndefined();
+  it("leaves notes unset when the receipt has no items", () => {
+    const defaults = mapReceiptToExpenseDefaults(receipt({ subtotal: 10, tax: 1 }), "EUR");
+    expect(defaults.notes).toBeUndefined();
   });
 
-  it("leaves notes unset when there is nothing to compose", () => {
-    expect(mapReceiptToExpenseDefaults(receipt(), "EUR").notes).toBeUndefined();
-  });
-
-  it("keeps the subtotal detail when a huge translation blows the limit", () => {
-    const defaults = mapReceiptToExpenseDefaults(
-      receipt({ subtotal: 10, tax: 1, detected_language: "it", translation: "x".repeat(5000) }),
-      "EUR",
-    );
-    expect(defaults.notes!.length).toBeLessThanOrEqual(NOTES_MAX_LENGTH);
-    expect(defaults.notes).toContain("Subtotal: 10");
-  });
 
   it("resolves a suggested category name to that category's id", () => {
     const defaults = mapReceiptToExpenseDefaults(

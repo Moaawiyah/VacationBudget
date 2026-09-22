@@ -84,9 +84,7 @@ async def test_allowed_categories_are_offered_to_the_model():
             captured["user"] = user_prompt
             return '{"category": "Food"}'
 
-    raw, _ = await extract(
-        CapturingProvider(), "ocr text", None, ["Food", "Transport"]
-    )
+    raw, _ = await extract(CapturingProvider(), "ocr text", None, ["Food", "Transport"])
 
     assert raw.category == "Food"
     assert "Food" in captured["user"]

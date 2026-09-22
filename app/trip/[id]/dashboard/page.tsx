@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CalendarDays, CreditCard, TrendingUp } from "lucide-react";
 import { getSdk } from "@/lib/sdk/server";
@@ -17,6 +18,8 @@ import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentExpenses } from "@/components/dashboard/recent-expenses";
 import { CategoryChart } from "@/components/charts/category-chart";
 import { StatCard } from "@/components/ui/stat-card";
+import { AskAiButton } from "@/components/copilot/ask-ai-button";
+import { AiInsightCard } from "@/components/dashboard/ai-insight-card";
 
 export default async function TripDashboardPage({
   params,
@@ -81,7 +84,12 @@ export default async function TripDashboardPage({
           />
         </div>
       </div>
+      {/* Streams in after the rest of the dashboard; renders nothing when there's nothing worth saying. */}
+      <Suspense fallback={null}>
+        <AiInsightCard tripId={id} />
+      </Suspense>
       <QuickActions tripId={id} />
+      <AskAiButton tripId={id} />
       <div className="grid gap-5 xl:grid-cols-2">
         <CategoryChart data={categories} currency={trip.base_currency} />
         <RecentExpenses tripId={id} expenses={expenses} currency={trip.base_currency} />

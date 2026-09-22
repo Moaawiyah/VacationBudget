@@ -102,4 +102,41 @@ describe("generateBudgetPlan", () => {
     // It's plain text inside the user message, not a role change or a system-prompt rewrite.
     expect(messages).toHaveLength(2);
   });
+
+  it("revises a previous plan on request, and the revision is validated like any other plan", async () => {
+    // The model "revises" but its amounts no longer add up — code reconciles, not the model.
+    const provider = fakeProvider({
+      content: JSON.stringify({
+        categories: [
+          { category: "Accommodation", amount: 1400 },
+          { category: "Food", amount: 1450 },
+          { category: "Shopping", amount: 3000 },
+        ],
+      }),
+      toolCalls: [],
+    });
+    const result = await generateBudgetPlan(provider, {
+      ...baseInput,
+      travelStyle: "BALANCED",
+      knownCosts: [{ label: "Hotel", amount: 1400 }],
+      revise: {
+        previousCategories: [
+          { category: "Accommodation", amount: 1400 },
+          { category: "Food", amount: 1250 },
+          { category: "Shopping", amount: 3350 },
+        ],
+        instruction: "Increase food by €200 and reduce shopping",
+      },
+    });
+    const [messages] = (provider.chat as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(messages[1].content).toContain("Already-known costs: Hotel=1400 EUR");
+    expect(messages[1].content).toContain("Previous plan: Accommodation=1400, Food=1250, Shopping=3350");
+    expect(messages[1].content).toContain("Increase food by €200 and reduce shopping");
+    expect(messages[1].content).toContain("Travel style: BALANCED");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const total = result.plan.categories.reduce((sum, c) => sum + Math.round(c.amount * 100), 0);
+      expect(total).toBe(600_000);
+    }
+  });
 });

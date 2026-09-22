@@ -78,6 +78,12 @@ export type Database = {
           end_date: string;
           base_currency: string;
           total_budget: string;
+          cover_image_url: string | null;
+          cover_image_alt: string | null;
+          cover_provider: string | null;
+          cover_photographer: string | null;
+          cover_photographer_url: string | null;
+          cover_source_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -91,6 +97,12 @@ export type Database = {
           end_date: string;
           base_currency: string;
           total_budget: number;
+          cover_image_url?: string | null;
+          cover_image_alt?: string | null;
+          cover_provider?: string | null;
+          cover_photographer?: string | null;
+          cover_photographer_url?: string | null;
+          cover_source_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -104,6 +116,12 @@ export type Database = {
           end_date?: string;
           base_currency?: string;
           total_budget?: number;
+          cover_image_url?: string | null;
+          cover_image_alt?: string | null;
+          cover_provider?: string | null;
+          cover_photographer?: string | null;
+          cover_photographer_url?: string | null;
+          cover_source_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };

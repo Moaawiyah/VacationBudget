@@ -33,6 +33,28 @@ const nextConfig: NextConfig = {
   // submit — which is exactly what happened testing login from the iPhone.
   // Has no effect on production (Railway serves a real domain, not dev mode).
   allowedDevOrigins: ["10.0.0.25"],
+  images: {
+    qualities: [75],
+    // Trip covers only — exactly the host, path and size parameters
+    // lib/images/pexels-provider.ts builds (and 0018_trip_cover.sql
+    // enforces). No wildcard hosts: the optimizer won't fetch anything else.
+    // Images are served from this app's own origin, so the CSP's
+    // img-src 'self' needs no external host.
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
+        pathname: "/photos/**",
+        search: "?auto=compress&cs=tinysrgb&w=1600",
+      },
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
+        pathname: "/photos/**",
+        search: "?auto=compress&cs=tinysrgb&w=600",
+      },
+    ],
+  },
   experimental: {
     // Detects connectivity loss and automatically retries a blocked
     // navigation or Server Action once the connection returns, instead of

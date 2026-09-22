@@ -4,6 +4,7 @@ import { updateTrip } from "@/app/trips/actions";
 import { TripForm, type TripFormValues } from "@/components/trips/trip-form";
 import { useDictionary } from "@/components/i18n/locale-provider";
 import type { Trip } from "@/types/trip";
+import { coverFromTrip } from "@/lib/images/cover-schema";
 
 export function EditTripForm({ trip }: { trip: Trip }) {
   const dict = useDictionary();
@@ -15,6 +16,7 @@ export function EditTripForm({ trip }: { trip: Trip }) {
     end_date: trip.end_date,
     base_currency: trip.base_currency,
     total_budget: trip.total_budget,
+    cover: coverFromTrip(trip),
   };
 
   return (

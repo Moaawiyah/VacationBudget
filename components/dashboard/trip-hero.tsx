@@ -6,6 +6,9 @@ import { formatDestination } from "@/lib/countries";
 import { calculateTripStatus } from "@/lib/calculations/trip";
 import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { LOCALE_BCP47 } from "@/lib/i18n/config";
+import { coverFromTrip } from "@/lib/images/cover-schema";
+import { TripCoverImage } from "@/components/trips/cover/trip-cover-image";
+import { CoverAttribution } from "@/components/trips/cover/cover-attribution";
 
 export async function TripHero({
   trip,
@@ -22,8 +25,28 @@ export async function TripHero({
     upcoming: dict.trips.statusUpcoming,
     completed: dict.trips.statusCompleted,
   }[status];
+  const cover = coverFromTrip(trip);
   return (
-    <section className="travel-cover relative flex min-h-44 flex-col justify-end overflow-hidden rounded-2xl p-4 text-white sm:min-h-72 sm:p-7">
+    <section className="relative isolate flex min-h-44 flex-col justify-end overflow-hidden rounded-2xl p-4 text-white sm:min-h-72 sm:p-7">
+      <TripCoverImage
+        src={cover?.url}
+        alt=""
+        sizes="(max-width: 1280px) 100vw, 60vw"
+        priority
+        className="-z-20"
+      />
+      {/* Same scrim the old .travel-cover used, so the text stays readable on any photo. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-gradient-to-b from-[rgb(9_30_42/0.06)] to-[rgb(9_30_42/0.84)]"
+      />
+      {cover && (
+        <CoverAttribution
+          cover={cover}
+          template={dict.tripForm.photoBy}
+          className="absolute end-4 bottom-3 text-white/75 sm:end-7"
+        />
+      )}
       <span className="absolute start-4 top-3 rounded-full border border-white/30 bg-black/20 px-3 py-1 text-xs backdrop-blur-md sm:start-7 sm:top-5">
         {label}
       </span>

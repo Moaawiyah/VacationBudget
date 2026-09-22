@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CURRENCY_CODES } from "@/lib/currency/constants";
 import type { Dictionary } from "@/lib/i18n/types";
+import { tripCoverSchema } from "@/lib/images/cover-schema";
 
 export function tripSchema(t: Dictionary["validation"]) {
   return z
@@ -18,6 +19,8 @@ export function tripSchema(t: Dictionary["validation"]) {
       end_date: z.string().min(1, t.endDateRequired),
       base_currency: z.enum(CURRENCY_CODES, { message: t.currencyChoose }),
       total_budget: z.coerce.number().min(0, t.budgetNegative),
+      // Omitted: leave the stored cover alone. null: use the default cover.
+      cover: tripCoverSchema.nullable().optional(),
     })
     .refine((data) => data.end_date >= data.start_date, {
       message: t.endDateBeforeStart,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Coins, Luggage, PenLine, Wallet } from "lucide-react";
 import type { z } from "zod";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { CountryPicker } from "@/components/trips/country-picker";
+import { CoverPicker } from "@/components/trips/cover/cover-picker";
 
 // The raw form fields (before Zod coercion, e.g. total_budget as whatever the
 // <input type="number"> gives it) differ from TripInput (after coercion, a
@@ -38,6 +39,7 @@ export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps
     resolver: zodResolver(tripSchema(dict.validation)),
     defaultValues: { base_currency: "EUR", ...defaultValues },
   });
+  const destination = useWatch({ control, name: "destination" }) ?? "";
 
   function submit(data: TripInput) {
     setFormError(null);
@@ -67,6 +69,17 @@ export function TripForm({ defaultValues, onSubmit, submitLabel }: TripFormProps
             onChange={field.onChange}
             onBlur={field.onBlur}
             error={errors.destination?.message}
+          />
+        )}
+      />
+      <Controller
+        control={control}
+        name="cover"
+        render={({ field }) => (
+          <CoverPicker
+            destination={destination}
+            value={field.value}
+            onChange={field.onChange}
           />
         )}
       />

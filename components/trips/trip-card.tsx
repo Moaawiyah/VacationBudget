@@ -18,6 +18,7 @@ import { LOCALE_BCP47 } from "@/lib/i18n/config";
 import { formatDestination } from "@/lib/countries";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { DeleteTripButton } from "@/components/trips/delete-trip-button";
+import { TripCoverImage } from "@/components/trips/cover/trip-cover-image";
 import { cn } from "@/lib/utils";
 
 const STATUS_CLASS: Record<TripStatus, string> = {
@@ -56,55 +57,68 @@ export async function TripCard({
   };
 
   return (
-    <div className="border-border bg-card rounded-3xl border p-5 shadow-sm">
+    <div className="border-border bg-card overflow-hidden rounded-3xl border shadow-sm">
       <Link href={`/trip/${trip.id}/dashboard`} className="block">
-        <div className="flex items-start justify-between gap-2">
-          <h2 className="text-card-foreground text-lg font-semibold">{trip.name}</h2>
+        {/* The stored cover only — rendering a card never searches for photos. */}
+        <div className="relative h-40 sm:h-44">
+          <TripCoverImage
+            src={trip.cover_image_url}
+            alt=""
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 420px"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent"
+          />
           <span
             className={cn(
-              "inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
+              "absolute end-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
               STATUS_CLASS[status],
             )}
           >
             <StatusIcon aria-hidden className="h-3.5 w-3.5 shrink-0" />
             {statusLabel[status]}
           </span>
+          <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+            <h2 className="truncate text-lg font-semibold">{trip.name}</h2>
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-white/90">
+              <Calendar aria-hidden className="h-3.5 w-3.5 shrink-0" />
+              {formatDateRange(trip.start_date, trip.end_date, bcp47)}
+            </p>
+          </div>
         </div>
 
-        <div className="text-muted-foreground mt-2 flex flex-col gap-1 text-sm">
-          <div className="flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5 shrink-0" />
+        <div className="px-5 pt-4 pb-5">
+          <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
+            <MapPin aria-hidden className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">{formatDestination(trip.destination, bcp47)}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5 shrink-0" />
-            <span>{formatDateRange(trip.start_date, trip.end_date, bcp47)}</span>
-          </div>
-        </div>
 
-        <div className="mt-4">
-          <div className="flex items-center justify-between gap-2 text-sm">
-            <span className="text-card-foreground flex items-center gap-1.5">
-              <Wallet
-                aria-hidden
-                className="text-muted-foreground h-3.5 w-3.5 shrink-0"
-              />
-              {formatCurrency(spent, trip.base_currency, bcp47)} {dict.trips.spent}
-            </span>
-            <span className="text-muted-foreground">
-              {formatCurrency(trip.total_budget, trip.base_currency, bcp47)}{" "}
-              {dict.trips.budget}
-            </span>
+          <div className="mt-4">
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <span className="text-card-foreground flex items-center gap-1.5">
+                <Wallet
+                  aria-hidden
+                  className="text-muted-foreground h-3.5 w-3.5 shrink-0"
+                />
+                {formatCurrency(spent, trip.base_currency, bcp47)} {dict.trips.spent}
+              </span>
+              <span className="text-muted-foreground">
+                {formatCurrency(trip.total_budget, trip.base_currency, bcp47)}{" "}
+                {dict.trips.budget}
+              </span>
+            </div>
+            <ProgressBar value={progress} className="mt-2" />
+            <p className="text-muted-foreground mt-1.5 text-xs">
+              {formatCurrency(remaining, trip.base_currency, bcp47)}{" "}
+              {dict.trips.remaining}
+            </p>
           </div>
-          <ProgressBar value={progress} className="mt-2" />
-          <p className="text-muted-foreground mt-1.5 text-xs">
-            {formatCurrency(remaining, trip.base_currency, bcp47)} {dict.trips.remaining}
-          </p>
         </div>
       </Link>
 
       {isOwner && (
-        <div className="border-border mt-4 flex gap-2 border-t pt-3">
+        <div className="border-border mx-5 mb-3 flex gap-2 border-t pt-3">
           <Link
             href={`/trips/${trip.id}/edit`}
             className="text-muted-foreground flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm font-medium transition-opacity active:opacity-60"

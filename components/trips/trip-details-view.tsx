@@ -9,6 +9,9 @@ import { calculateTripDays } from "@/lib/calculations/trip";
 import { ExpenseRow } from "@/components/expenses/expense-row";
 import type { Companion } from "@/types/companion";
 import { cn } from "@/lib/utils";
+import { coverFromTrip } from "@/lib/images/cover-schema";
+import { TripCoverImage } from "@/components/trips/cover/trip-cover-image";
+import { CoverAttribution } from "@/components/trips/cover/cover-attribution";
 
 export function TripDetailsView({
   trip,
@@ -26,6 +29,7 @@ export function TripDetailsView({
   isOwner: boolean;
 }) {
   const base = `/trip/${trip.id}`;
+  const cover = coverFromTrip(trip);
   const spent = expenses.reduce((total, expense) => total + expense.converted_amount, 0);
   const recent = [...expenses]
     .sort((a, b) => b.expense_date.localeCompare(a.expense_date))
@@ -40,7 +44,16 @@ export function TripDetailsView({
   ] as const;
   return (
     <main className="p-4 sm:p-8">
-      <div aria-hidden className="travel-cover h-52 rounded-t-3xl sm:h-72" />
+      <div className="relative isolate h-52 overflow-hidden rounded-t-3xl sm:h-72">
+        <TripCoverImage src={cover?.url} alt="" sizes="(max-width: 1440px) 100vw, 1380px" className="-z-10" />
+        {cover && (
+          <CoverAttribution
+            cover={cover}
+            template={dict.tripForm.photoBy}
+            className="absolute end-4 top-3 rounded-full bg-black/40 px-2.5 py-1 text-white/90"
+          />
+        )}
+      </div>
       <section className="bg-card border-border relative -mt-6 rounded-3xl border p-5 shadow-sm sm:p-8">
         <p className="text-primary text-xs font-semibold tracking-widest uppercase">
           {dict.travel.tripDetails}

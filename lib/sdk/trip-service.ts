@@ -1,4 +1,5 @@
 import type { TripInput } from "@/lib/validation/trip";
+import { toCoverColumns } from "@/lib/images/cover-schema";
 import { toTrip, type Trip } from "@/types/trip";
 import { BaseService } from "./base-service";
 import type { AppErrorCode } from "./errors";
@@ -16,6 +17,7 @@ export function toTripRow(input: TripInput) {
     end_date: input.end_date,
     base_currency: input.base_currency,
     total_budget: input.total_budget,
+    ...(input.cover !== undefined && toCoverColumns(input.cover)),
   };
 }
 

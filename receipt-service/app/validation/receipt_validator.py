@@ -6,12 +6,14 @@ never trusted directly, only used as hints for what to try to parse.
 Free text is card-number-redacted here, before it can reach notes or logs.
 """
 
+from datetime import date
+
 from app.llm.extraction import RawExtraction
 from app.models.receipt import ExtractedReceipt, LineItem, Warning
 from app.validation.amounts import is_ambiguous_amount, parse_amount
 from app.validation.categories import resolve_category
 from app.validation.currency import is_ambiguous_currency, normalize_currency
-from app.validation.dates import parse_receipt_date
+from app.validation.dates import is_ambiguous_date, parse_receipt_date
 from app.validation.icons import sanitize_icon
 from app.validation.reconciliation import reconcile_items, reconcile_totals, resolve_tax
 from app.validation.redaction import redact_card_numbers, redact_optional
@@ -19,6 +21,9 @@ from app.validation.warnings import WARNING_CODES, warn
 
 _MAX_LINE_ITEMS = 100  # a malformed/malicious response can't send an unbounded list
 _SUSPICIOUS_TOTAL = 1_000_000
+# Receipts in it/de/fr/ar/he are always day-first; English ones may be US
+# (month-first) or not, and an unknown language could be either.
+_MONTH_FIRST_POSSIBLE = {None, "en"}
 
 
 def _total(raw: RawExtraction) -> tuple[float | None, list[Warning]]:
@@ -70,6 +75,7 @@ def validate_extraction(
     raw_ocr_text: str,
     extraction_warnings: list[str],
     allowed_categories: list[str] | None = None,
+    today: date | None = None,
 ) -> ExtractedReceipt:
     warnings = [warn(code) for code in extraction_warnings if code in WARNING_CODES]
 
@@ -77,7 +83,7 @@ def validate_extraction(
     currency, currency_warnings = _currency(raw)
     subtotal = parse_amount(raw.subtotal)
     tax, tax_warnings = resolve_tax(parse_amount(raw.tax), raw.taxes)
-    expense_date, date_ok = parse_receipt_date(raw.date)
+    expense_date, date_ok = parse_receipt_date(raw.date, today)
     category, hallucinated = resolve_category(raw.category, allowed_categories or [])
     line_items = _line_items(raw)
     merchant = raw.merchant.strip()[:200] if raw.merchant and raw.merchant.strip() else None
@@ -87,6 +93,8 @@ def validate_extraction(
     warnings += total_warnings + currency_warnings + tax_warnings
     if raw.date and not date_ok:
         warnings.append(warn("date_unparseable"))
+    elif is_ambiguous_date(raw.date) and raw.detected_language in _MONTH_FIRST_POSSIBLE:
+        warnings.append(warn("date_ambiguous", detail=raw.date))
     if hallucinated:
         warnings.append(warn("category_unrecognized", detail=raw.category))
     warnings += reconcile_totals(total, subtotal, tax)

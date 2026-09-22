@@ -1,0 +1,81 @@
+{
+  "id": "it_trattoria_discount",
+  "language": "it",
+  "tags": [
+    "decimal_comma",
+    "discount",
+    "vat_inclusive",
+    "card_number"
+  ],
+  "ocr_text": "TRATTORIA DA MARIO\nVia Roma 12, 20121 Milano\n21/09/2026 20:14\nPizza Margherita      9,50\nTiramisù              6,00\nAcqua naturale        2,50\nSconto fedeltà       -2,00\nTOTALE EURO          16,00\ndi cui IVA 10%        1,45\nPAGAMENTO VISA 4111 1111 1111 1111",
+  "llm_response": {
+    "detected_language": "it",
+    "translation": "Trattoria da Mario ... total 16.00 euro, of which VAT 1.45",
+    "merchant": "Trattoria da Mario",
+    "date": "21/09/2026",
+    "total": "16,00",
+    "subtotal": null,
+    "tax": "1,45",
+    "taxes": [
+      {
+        "rate": 10,
+        "amount": "1,45"
+      }
+    ],
+    "currency": "EUR",
+    "category": "Food",
+    "line_items": [
+      {
+        "description": "Pizza Margherita",
+        "quantity": 1,
+        "total_price": "9,50",
+        "icon": "🍕"
+      },
+      {
+        "description": "Tiramisù",
+        "quantity": 1,
+        "total_price": "6,00",
+        "icon": "🍰"
+      },
+      {
+        "description": "Acqua naturale",
+        "quantity": 1,
+        "total_price": "2,50",
+        "icon": "💧"
+      },
+      {
+        "description": "Sconto fedeltà",
+        "quantity": null,
+        "total_price": "-2,00",
+        "icon": "🏷️"
+      }
+    ],
+    "uncertain_fields": []
+  },
+  "expected": {
+    "merchant": "Trattoria da Mario",
+    "date": "2026-09-21",
+    "total": 16.0,
+    "currency": "EUR",
+    "tax": 1.45,
+    "line_items": [
+      {
+        "description": "Pizza Margherita",
+        "total_price": 9.5
+      },
+      {
+        "description": "Tiramisù",
+        "total_price": 6.0
+      },
+      {
+        "description": "Acqua naturale",
+        "total_price": 2.5
+      },
+      {
+        "description": "Sconto fedeltà",
+        "total_price": -2.0
+      }
+    ],
+    "warnings": []
+  }
+}

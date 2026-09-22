@@ -33,6 +33,7 @@ export const enReceipts = {
       currency_ambiguous:
         "Check the currency: this symbol is used by several currencies.",
       date_unparseable: "Could not read the date — please check it.",
+      date_ambiguous: "Check the date: the day and month may be swapped.",
       totals_mismatch: "Subtotal and tax don't add up to the total.",
       tax_mismatch: "The tax lines don't add up to the stated tax.",
       items_mismatch: "The items don't add up to the total.",

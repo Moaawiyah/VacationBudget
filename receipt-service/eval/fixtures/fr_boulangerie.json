@@ -1,0 +1,61 @@
+{
+  "id": "fr_boulangerie",
+  "language": "fr",
+  "tags": [
+    "decimal_comma",
+    "vat_inclusive",
+    "named_month"
+  ],
+  "ocr_text": "BOULANGERIE PAUL\n12 rue de la Paix, Paris\n21 sept. 2026\n2 Croissant au beurre     2,60\nBaguette tradition        1,30\nTOTAL TTC                 3,90 €\nTVA 5,5%                  0,20",
+  "llm_response": {
+    "detected_language": "fr",
+    "translation": "Paul bakery ... total incl. tax 3.90 €, VAT 5.5% 0.20",
+    "merchant": "Boulangerie Paul",
+    "date": "21 sept. 2026",
+    "total": "3,90",
+    "subtotal": null,
+    "tax": "0,20",
+    "taxes": [
+      {
+        "rate": "5,5",
+        "amount": "0,20"
+      }
+    ],
+    "currency": "€",
+    "category": "Food",
+    "line_items": [
+      {
+        "description": "Croissant au beurre",
+        "quantity": 2,
+        "unit_price": "1,30",
+        "total_price": "2,60",
+        "icon": "🥐"
+      },
+      {
+        "description": "Baguette tradition",
+        "quantity": 1,
+        "total_price": "1,30",
+        "icon": "🥖"
+      }
+    ],
+    "uncertain_fields": []
+  },
+  "expected": {
+    "merchant": "Boulangerie Paul",
+    "date": "2026-09-21",
+    "total": 3.9,
+    "currency": "EUR",
+    "tax": 0.2,
+    "line_items": [
+      {
+        "description": "Croissant au beurre",
+        "total_price": 2.6
+      },
+      {
+        "description": "Baguette tradition",
+        "total_price": 1.3
+      }
+    ],
+    "warnings": []
+  }
+}

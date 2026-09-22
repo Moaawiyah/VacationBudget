@@ -1,0 +1,38 @@
+{
+  "id": "blurry_ocr_misread_total",
+  "language": "de",
+  "tags": [
+    "blurry_ocr",
+    "ocr_confusion"
+  ],
+  "ocr_text": "SUP3RMAR KT  F1LIALE\nT0TAL   4O.00\nBAR    5O.OO\nRUCKG  1O.OO",
+  "llm_response": {
+    "detected_language": "de",
+    "translation": null,
+    "merchant": "Supermarkt Filiale",
+    "date": null,
+    "total": "4O.00",
+    "subtotal": null,
+    "tax": null,
+    "taxes": [],
+    "currency": null,
+    "category": null,
+    "line_items": [],
+    "uncertain_fields": [
+      "merchant",
+      "total"
+    ]
+  },
+  "expected": {
+    "merchant": "Supermarkt Filiale",
+    "date": null,
+    "total": null,
+    "currency": null,
+    "line_items": [],
+    "warnings": [
+      "total_unparseable",
+      "total_missing",
+      "low_confidence"
+    ]
+  }
+}

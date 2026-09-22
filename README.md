@@ -86,6 +86,22 @@ SQL Editor (paste the file's contents, click Run):
    policy to also verify trip ownership, matching the insert policy
 7. `0007_signup_identity.sql` — names and unique usernames, preserving existing accounts
 8. `0008_trip_companions.sql` — invitation state and participant-aware trip access
+9. `0009_authorization_hardening.sql` — trip roles enforced in RLS: members edit/delete
+   only their own expenses, planned budgets are owner-only, invitees can only accept
+   their own invitation, identity columns aren't user-writable
+10. `0010_financial_integrity.sql` — the database derives converted amounts, locks a
+    trip's currency once it has expenses, and mirrors the app's length limits
+11. `0011_expense_idempotency.sql` — per-user request ids so a retried submission
+    can't create a duplicate expense
+
+**Apply 0009–0011 before deploying the matching app code** — it sends
+`client_request_id`, which fails until 0011 exists.
+
+The database tests (`tests/db/`) run these same migration files in PGlite, a real
+Postgres compiled to WASM, signed in as different users — so RLS policies and
+triggers are tested as written. `VB_MIGRATIONS_UPTO=0008 npx vitest run tests/db`
+replays history to a given migration, to confirm a test fails on the schema a fix
+replaced.
 
 Every table has Row Level Security enabled — a user can only read or write their own
 trips, expenses, categories, and planned budgets. `user_id` is always taken from the

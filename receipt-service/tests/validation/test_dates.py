@@ -33,3 +33,19 @@ def test_implausibly_old_date_is_rejected():
 
 def test_garbage_is_rejected():
     assert parse_receipt_date("not a date at all !!", TODAY) == (None, False)
+
+
+def test_ambiguous_numeric_dates_are_flagged_only_where_month_first_is_possible():
+    from app.llm.extraction import RawExtraction
+    from app.validation.receipt_validator import validate_extraction
+
+    def codes(language, raw_date):
+        raw = RawExtraction(
+            merchant="M", total=1.0, date=raw_date, detected_language=language
+        )
+        return {w.code for w in validate_extraction(raw, "", [], today=TODAY).warnings}
+
+    assert "date_ambiguous" in codes("en", "03/04/2026")  # US reading = 4 March
+    assert "date_ambiguous" not in codes("it", "03/04/2026")  # Italian: day-first
+    assert "date_ambiguous" not in codes("en", "21/04/2026")  # 21 can't be a month
+    assert "date_ambiguous" not in codes("en", "04/04/2026")  # same either way

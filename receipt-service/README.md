@@ -29,6 +29,30 @@ uv run pytest
 uv run ruff check .
 ```
 
+### Receipt extraction eval
+
+`eval/fixtures/` holds labelled receipts in English, Italian, German, French,
+Arabic and Hebrew, including decimal commas, discounts, multiple VAT rates,
+blurry OCR, missing subtotals, unusual dates and a prompt injection.
+
+```bash
+uv run python -m eval.run         # replay: recorded model output → parsing + validation
+uv run python -m eval.run --live  # live: OCR text → the configured LLM (needs GROQ_API_KEY)
+```
+
+Replay is deterministic and gated in pytest (`tests/eval/`); live mode costs API
+calls and measures the model itself, so it never runs in the normal suite.
+
+### API contract
+
+`contracts/receipt-analyze.schema.json` (repo root) is generated from the Pydantic
+response models; the web app's tests check its Zod schema against it, so a field
+changed on one side fails a test on that side. After an intentional change:
+
+```bash
+UPDATE_CONTRACT=1 uv run pytest tests/test_contract.py
+```
+
 ## Architecture
 
 | Module              | Responsibility                                              |

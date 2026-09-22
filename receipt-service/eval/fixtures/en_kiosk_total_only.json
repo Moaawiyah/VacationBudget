@@ -1,0 +1,32 @@
+{
+  "id": "en_kiosk_total_only",
+  "language": "en",
+  "tags": [
+    "missing_subtotal",
+    "no_date",
+    "no_currency"
+  ],
+  "ocr_text": "CITY KIOSK\nTOTAL 3.50\nTHANK YOU",
+  "llm_response": {
+    "detected_language": "en",
+    "translation": null,
+    "merchant": "City Kiosk",
+    "date": null,
+    "total": 3.5,
+    "subtotal": null,
+    "tax": null,
+    "taxes": [],
+    "currency": null,
+    "category": null,
+    "line_items": [],
+    "uncertain_fields": []
+  },
+  "expected": {
+    "merchant": "City Kiosk",
+    "date": null,
+    "total": 3.5,
+    "currency": null,
+    "line_items": [],
+    "warnings": []
+  }
+}

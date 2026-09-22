@@ -1,0 +1,59 @@
+{
+  "id": "he_cafe_two_digit_year",
+  "language": "he",
+  "tags": [
+    "rtl",
+    "shekel",
+    "two_digit_year",
+    "vat_inclusive"
+  ],
+  "ocr_text": "קפה ג'ו\nדיזנגוף 100, תל אביב\n21/09/26 09:41\nהפוך גדול          14.00\nקרואסון חמאה       12.00\nסה\"כ לתשלום     26.00 ₪\nכולל מע\"מ 18%       3.97",
+  "llm_response": {
+    "detected_language": "he",
+    "translation": "Cafe Joe, Dizengoff 100 ... large latte 14, butter croissant 12, total 26.00 ILS incl. VAT 3.97",
+    "merchant": "קפה ג'ו",
+    "date": "21/09/26",
+    "total": 26.0,
+    "subtotal": null,
+    "tax": 3.97,
+    "taxes": [
+      {
+        "rate": 18,
+        "amount": 3.97
+      }
+    ],
+    "currency": "₪",
+    "category": "Coffee",
+    "line_items": [
+      {
+        "description": "הפוך גדול",
+        "total_price": 14.0,
+        "icon": "☕"
+      },
+      {
+        "description": "קרואסון חמאה",
+        "total_price": 12.0,
+        "icon": "🥐"
+      }
+    ],
+    "uncertain_fields": []
+  },
+  "expected": {
+    "merchant": "קפה ג'ו",
+    "date": "2026-09-21",
+    "total": 26.0,
+    "currency": "ILS",
+    "tax": 3.97,
+    "line_items": [
+      {
+        "description": "הפוך גדול",
+        "total_price": 14.0
+      },
+      {
+        "description": "קרואסון חמאה",
+        "total_price": 12.0
+      }
+    ],
+    "warnings": []
+  }
+}

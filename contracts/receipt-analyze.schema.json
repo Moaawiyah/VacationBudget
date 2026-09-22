@@ -1,0 +1,255 @@
+{
+  "response": {
+    "$defs": {
+      "ExtractedReceipt": {
+        "properties": {
+          "merchant": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Merchant"
+          },
+          "expense_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expense Date"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Total"
+          },
+          "subtotal": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Subtotal"
+          },
+          "tax": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Tax"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Currency"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Category"
+          },
+          "detected_language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Detected Language"
+          },
+          "translation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Translation"
+          },
+          "line_items": {
+            "items": {
+              "$ref": "#/$defs/LineItem"
+            },
+            "title": "Line Items",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/$defs/Warning"
+            },
+            "title": "Warnings",
+            "type": "array"
+          },
+          "raw_ocr_text": {
+            "default": "",
+            "title": "Raw Ocr Text",
+            "type": "string"
+          },
+          "confidence": {
+            "default": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          }
+        },
+        "title": "ExtractedReceipt",
+        "type": "object"
+      },
+      "LineItem": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Quantity"
+          },
+          "unit_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Unit Price"
+          },
+          "total_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Total Price"
+          },
+          "icon": {
+            "default": "•",
+            "title": "Icon",
+            "type": "string"
+          }
+        },
+        "required": [
+          "description"
+        ],
+        "title": "LineItem",
+        "type": "object"
+      },
+      "Warning": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "severity": {
+            "default": "warning",
+            "title": "Severity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "field",
+          "message"
+        ],
+        "title": "Warning",
+        "type": "object"
+      }
+    },
+    "properties": {
+      "receipt": {
+        "$ref": "#/$defs/ExtractedReceipt"
+      }
+    },
+    "required": [
+      "receipt"
+    ],
+    "title": "AnalyzeReceiptResponse",
+    "type": "object"
+  },
+  "error": {
+    "description": "Every non-2xx body. `code` is stable and machine-readable (the web app\ntranslates it); `message` is English for developers.",
+    "properties": {
+      "code": {
+        "title": "Code",
+        "type": "string"
+      },
+      "message": {
+        "title": "Message",
+        "type": "string"
+      }
+    },
+    "required": [
+      "code",
+      "message"
+    ],
+    "title": "ErrorResponse",
+    "type": "object"
+  }
+}

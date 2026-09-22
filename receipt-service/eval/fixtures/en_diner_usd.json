@@ -1,0 +1,58 @@
+{
+  "id": "en_diner_usd",
+  "language": "en",
+  "tags": [
+    "tax_exclusive",
+    "ambiguous_currency"
+  ],
+  "ocr_text": "JOE'S DINER\n09/15/2026\nPancakes 2 x 6.50   13.00\nCoffee             3.25\nSubtotal          16.25\nTax                1.46\nTOTAL            $17.71\nVISA **** 4242",
+  "llm_response": {
+    "detected_language": "en",
+    "translation": null,
+    "merchant": "Joe's Diner",
+    "date": "09/15/2026",
+    "total": 17.71,
+    "subtotal": 16.25,
+    "tax": 1.46,
+    "taxes": [],
+    "currency": "$",
+    "category": "Food",
+    "line_items": [
+      {
+        "description": "Pancakes",
+        "quantity": 2,
+        "unit_price": 6.5,
+        "total_price": 13.0,
+        "icon": "🥞"
+      },
+      {
+        "description": "Coffee",
+        "quantity": 1,
+        "unit_price": 3.25,
+        "total_price": 3.25,
+        "icon": "☕"
+      }
+    ],
+    "uncertain_fields": []
+  },
+  "expected": {
+    "merchant": "Joe's Diner",
+    "date": "2026-09-15",
+    "total": 17.71,
+    "currency": "USD",
+    "tax": 1.46,
+    "line_items": [
+      {
+        "description": "Pancakes",
+        "total_price": 13.0
+      },
+      {
+        "description": "Coffee",
+        "total_price": 3.25
+      }
+    ],
+    "warnings": [
+      "currency_ambiguous"
+    ]
+  }
+}

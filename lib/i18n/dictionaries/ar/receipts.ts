@@ -32,6 +32,7 @@ export const arReceipts: Pick<Dictionary, "receipts"> = {
       currency_unrecognized: "لم يتم التعرف على العملة — يرجى اختيارها.",
       currency_ambiguous: "تحقق من العملة: هذا الرمز تستخدمه عدة عملات.",
       date_unparseable: "تعذّرت قراءة التاريخ — يرجى التحقق منه.",
+      date_ambiguous: "تحقق من التاريخ: قد يكون اليوم والشهر مقلوبين.",
       totals_mismatch: "المجموع الفرعي والضريبة لا يساويان الإجمالي.",
       tax_mismatch: "بنود الضريبة لا تساوي الضريبة المذكورة.",
       items_mismatch: "مجموع العناصر لا يساوي الإجمالي.",

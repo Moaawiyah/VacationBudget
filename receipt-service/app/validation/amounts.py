@@ -6,6 +6,7 @@ thousands-vs-decimal heuristics rather than trusting the LLM's own arithmetic.
 import re
 
 _NUMERIC_RE = re.compile(r"[^0-9.,\-]")
+_OCR_CONFUSION = re.compile(r"\d[.,\s]*[A-Za-z]+[.,\s]*\d")
 
 
 def parse_amount(raw: float | int | str | None) -> float | None:
@@ -14,6 +15,11 @@ def parse_amount(raw: float | int | str | None) -> float | None:
     if isinstance(raw, int | float):
         return round(float(raw), 2)
 
+    if _OCR_CONFUSION.search(raw):
+        # "4O.00", "1l.50": a letter *inside* a number is an OCR misread of a
+        # digit. Stripping it would silently yield a wrong amount (4.00), so
+        # report "unparseable" and let the user type the real one.
+        return None
     cleaned = _NUMERIC_RE.sub("", raw).strip()
     if not cleaned or cleaned == "-":
         return None

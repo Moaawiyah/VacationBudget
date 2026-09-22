@@ -1,0 +1,60 @@
+{
+  "id": "ar_restaurant_ils",
+  "language": "ar",
+  "tags": [
+    "rtl",
+    "shekel"
+  ],
+  "ocr_text": "مطعم الشام\nالناصرة\n2026/09/20\nحمص               25.00\nفلافل             18.00\nمشروبات           12.00\nالمجموع       55.00 ₪",
+  "llm_response": {
+    "detected_language": "ar",
+    "translation": "Al-Sham Restaurant, Nazareth ... hummus 25, falafel 18, drinks 12, total 55.00 ILS",
+    "merchant": "مطعم الشام",
+    "date": "2026/09/20",
+    "total": 55.0,
+    "subtotal": null,
+    "tax": null,
+    "taxes": [],
+    "currency": "₪",
+    "category": "Food",
+    "line_items": [
+      {
+        "description": "حمص",
+        "total_price": 25.0,
+        "icon": "🥙"
+      },
+      {
+        "description": "فلافل",
+        "total_price": 18.0,
+        "icon": "🧆"
+      },
+      {
+        "description": "مشروبات",
+        "total_price": 12.0,
+        "icon": "🥤"
+      }
+    ],
+    "uncertain_fields": []
+  },
+  "expected": {
+    "merchant": "مطعم الشام",
+    "date": "2026-09-20",
+    "total": 55.0,
+    "currency": "ILS",
+    "line_items": [
+      {
+        "description": "حمص",
+        "total_price": 25.0
+      },
+      {
+        "description": "فلافل",
+        "total_price": 18.0
+      },
+      {
+        "description": "مشروبات",
+        "total_price": 12.0
+      }
+    ],
+    "warnings": []
+  }
+}

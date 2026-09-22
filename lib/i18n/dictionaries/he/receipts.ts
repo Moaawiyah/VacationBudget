@@ -32,6 +32,7 @@ export const heReceipts: Pick<Dictionary, "receipts"> = {
       currency_unrecognized: "המטבע לא זוהה — בחרו אותו.",
       currency_ambiguous: "בדקו את המטבע: הסמל משמש כמה מטבעות.",
       date_unparseable: "לא ניתן היה לקרוא את התאריך — בדקו אותו.",
+      date_ambiguous: "בדקו את התאריך: ייתכן שהיום והחודש הוחלפו.",
       totals_mismatch: "סכום הביניים והמס אינם מסתכמים לסכום הכולל.",
       tax_mismatch: "שורות המס אינן מסתכמות למס המצוין.",
       items_mismatch: "הפריטים אינם מסתכמים לסכום הכולל.",

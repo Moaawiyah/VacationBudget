@@ -5,6 +5,7 @@ named months, various locales) — dateutil handles the formats; this module
 only adds the sanity checks dateutil can't do on its own.
 """
 
+import re
 from datetime import date, datetime, time
 
 from dateutil import parser as dateutil_parser
@@ -50,3 +51,16 @@ def parse_receipt_date(
     if parsed_date > reference or parsed_date.year < reference.year - 5:
         return None, False
     return parsed_date.isoformat(), True
+
+
+_NUMERIC_DATE = re.compile(r"^\s*(\d{1,2})[/.\-](\d{1,2})[/.\-]\d{2,4}")
+
+
+def is_ambiguous_date(raw: str | None) -> bool:
+    """True for dates like 03/04/2026, where both leading parts could be the
+    month: read day-first (3 April) here, but 4 March on a US receipt."""
+    match = _NUMERIC_DATE.match(raw or "")
+    if not match:
+        return False
+    first, second = int(match.group(1)), int(match.group(2))
+    return first != second and first <= 12 and second <= 12

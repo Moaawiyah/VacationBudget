@@ -1,0 +1,45 @@
+{
+  "id": "en_cinema_unusual_date",
+  "language": "en",
+  "tags": [
+    "named_month",
+    "ordinal_date",
+    "pound"
+  ],
+  "ocr_text": "ODEON LEICESTER SQUARE\nSep 20th, 2026 19:30\nAdult Ticket x2      24.00\nTOTAL             £24.00",
+  "llm_response": {
+    "detected_language": "en",
+    "translation": null,
+    "merchant": "Odeon Leicester Square",
+    "date": "Sep 20th, 2026",
+    "total": "£24.00",
+    "subtotal": null,
+    "tax": null,
+    "taxes": [],
+    "currency": "£",
+    "category": "Activities",
+    "line_items": [
+      {
+        "description": "Adult Ticket",
+        "quantity": 2,
+        "unit_price": 12.0,
+        "total_price": 24.0,
+        "icon": "🎟️"
+      }
+    ],
+    "uncertain_fields": []
+  },
+  "expected": {
+    "merchant": "Odeon Leicester Square",
+    "date": "2026-09-20",
+    "total": 24.0,
+    "currency": "GBP",
+    "line_items": [
+      {
+        "description": "Adult Ticket",
+        "total_price": 24.0
+      }
+    ],
+    "warnings": []
+  }
+}

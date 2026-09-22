@@ -1,0 +1,71 @@
+{
+  "id": "de_supermarkt_two_vat",
+  "language": "de",
+  "tags": [
+    "decimal_comma",
+    "multiple_vat",
+    "tax_exclusive"
+  ],
+  "ocr_text": "EDEKA Markt Schmidt\n21.09.2026  18:02\nVollkornbrot          2,49 A\nH-Milch 1L             1,19 A\nRiesling 0,75l         8,99 B\n------------------------------\nSUMME EUR             12,67\nMwSt A  7%  Netto 3,44  0,24\nMwSt B 19%  Netto 7,55  1,44\nNetto gesamt          10,99",
+  "llm_response": {
+    "detected_language": "de",
+    "translation": "EDEKA ... total 12.67 EUR, VAT 7% 0.24, VAT 19% 1.44",
+    "merchant": "EDEKA Markt Schmidt",
+    "date": "21.09.2026",
+    "total": "12,67",
+    "subtotal": "10,99",
+    "tax": "1,68",
+    "taxes": [
+      {
+        "rate": 7,
+        "amount": "0,24"
+      },
+      {
+        "rate": 19,
+        "amount": "1,44"
+      }
+    ],
+    "currency": "EUR",
+    "category": "Food",
+    "line_items": [
+      {
+        "description": "Vollkornbrot",
+        "total_price": "2,49",
+        "icon": "🍞"
+      },
+      {
+        "description": "H-Milch 1L",
+        "total_price": "1,19",
+        "icon": "🥛"
+      },
+      {
+        "description": "Riesling 0,75l",
+        "total_price": "8,99",
+        "icon": "🍷"
+      }
+    ],
+    "uncertain_fields": []
+  },
+  "expected": {
+    "merchant": "EDEKA Markt Schmidt",
+    "date": "2026-09-21",
+    "total": 12.67,
+    "currency": "EUR",
+    "tax": 1.68,
+    "line_items": [
+      {
+        "description": "Vollkornbrot",
+        "total_price": 2.49
+      },
+      {
+        "description": "H-Milch 1L",
+        "total_price": 1.19
+      },
+      {
+        "description": "Riesling 0,75l",
+        "total_price": 8.99
+      }
+    ],
+    "warnings": []
+  }
+}

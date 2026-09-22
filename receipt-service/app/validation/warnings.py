@@ -18,6 +18,7 @@ _CATALOGUE: dict[str, tuple[str, str, str]] = {
     "currency_unrecognized": ("currency", "warning", "Unrecognized currency"),
     "currency_ambiguous": ("currency", "warning", "Currency symbol is ambiguous"),
     "date_unparseable": ("expense_date", "warning", "Could not parse the receipt date"),
+    "date_ambiguous": ("expense_date", "warning", "Day and month could be swapped"),
     "totals_mismatch": ("total", "warning", "Subtotal and tax don't add up to the total"),
     "tax_mismatch": ("tax", "warning", "Tax lines don't add up to the stated tax"),
     "items_mismatch": ("line_items", "warning", "Line items don't add up to the total"),

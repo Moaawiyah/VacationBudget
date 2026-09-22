@@ -44,6 +44,7 @@ export const arAi = {
     copilotOffline: "يبدو أنك غير متصل. تحقق من اتصالك وحاول مرة أخرى.",
     copilotTimeout: "استغرقت الإجابة وقتًا طويلًا. حاول مرة أخرى.",
     copilotCheckedData: "تم التحقق من: {tools}",
+    copilotNavLabel: "المساعد الذكي",
     copilotTools: {
       getTripSummary: "ملخص الرحلة",
       getBudgetStatus: "حالة الميزانية",

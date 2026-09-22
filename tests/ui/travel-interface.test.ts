@@ -21,6 +21,8 @@ vi.mock("@/lib/i18n/server", () => ({
   getLocale: async () => "en",
 }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/trip/one/dashboard" }));
+// The Copilot nav button's panel imports this Server Action; only its markup is under test here.
+vi.mock("@/app/trip/[id]/copilot/actions", () => ({ askCopilot: vi.fn() }));
 
 type NodeProps = {
   children?: React.ReactNode;
@@ -65,25 +67,29 @@ describe("travel interface", () => {
     expect(onSearchChange).toHaveBeenCalledWith("Cafe");
   });
 
-  it("connects mobile navigation to home, expenses, creation, trips and more", () => {
+  it("connects mobile navigation to home, expenses, creation, the AI Copilot and more", () => {
     const html = renderToStaticMarkup(createElement(BottomNav, { tripId: "one" }));
     for (const href of [
       "/trip/one/dashboard",
       "/trip/one/expenses",
       "/trip/one/expenses/new",
-      "/trips",
       "/trip/one/settings",
     ])
       expect(html).toContain(`href="${href}"`);
     expect(html).toContain('aria-current="page"');
     expect(html).toContain(en.travel.home);
+    // The Copilot replaced the Trips tab (Trips stays reachable via the dashboard's Back link).
+    expect(html).toContain(en.ai.copilotNavLabel);
+    expect(html).not.toContain('href="/trips"');
   });
 
-  it("offers working analytics and scanner routes without Copilot", () => {
+  it("offers working analytics and scanner routes, and the Copilot as a panel button — never a dead route", () => {
     const html = renderToStaticMarkup(createElement(Sidebar, { tripId: "one" }));
     expect(html).toContain('href="/trip/one/analytics"');
     expect(html).toContain('href="/trip/one/expenses/receipt"');
-    expect(html).not.toContain("Copilot");
+    expect(html).toContain(en.ai.copilotNavLabel);
+    expect(html).toContain('aria-haspopup="dialog"');
+    expect(html).not.toMatch(/href="[^"]*copilot/i);
   });
 
   it("announces receipt processing separately from the capture state", () => {

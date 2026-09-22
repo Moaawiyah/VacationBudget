@@ -44,6 +44,7 @@ export const enAi = {
     copilotOffline: "You appear to be offline. Check your connection and try again.",
     copilotTimeout: "That took too long to answer. Try again.",
     copilotCheckedData: "Checked: {tools}",
+    copilotNavLabel: "AI Copilot",
     copilotTools: {
       getTripSummary: "trip summary",
       getBudgetStatus: "budget status",

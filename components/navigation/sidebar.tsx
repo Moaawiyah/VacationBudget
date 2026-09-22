@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   Mountain,
   LayoutDashboard,
-  Map,
   Receipt,
   ScanLine,
   ChartNoAxesCombined,
@@ -16,6 +15,7 @@ import {
   Scale,
 } from "lucide-react";
 import { useDictionary } from "@/components/i18n/locale-provider";
+import { CopilotNavButton } from "@/components/copilot/copilot-nav-button";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({ tripId }: { tripId: string }) {
@@ -24,7 +24,6 @@ export function Sidebar({ tripId }: { tripId: string }) {
   const base = `/trip/${tripId}`;
   const links = [
     [base + "/dashboard", dict.nav.dashboard, LayoutDashboard],
-    ["/trips", dict.trips.title, Map],
     [base + "/expenses", dict.nav.expenses, Receipt],
     [base + "/expenses/receipt", dict.receipts.scanReceipt, ScanLine],
     [base + "/analytics", dict.travel.analytics, ChartNoAxesCombined],
@@ -48,14 +47,10 @@ export function Sidebar({ tripId }: { tripId: string }) {
           <Link
             key={href}
             href={href}
-            aria-current={
-              pathname === href || (href === "/trips" && pathname === `${base}/details`)
-                ? "page"
-                : undefined
-            }
+            aria-current={pathname === href ? "page" : undefined}
             className={cn(
               "flex items-center gap-3 rounded-xl px-3 py-3 text-sm",
-              pathname === href || (href === "/trips" && pathname === `${base}/details`)
+              pathname === href
                 ? "bg-nav-active text-white"
                 : "text-nav-foreground hover:bg-white/5",
             )}
@@ -64,6 +59,8 @@ export function Sidebar({ tripId }: { tripId: string }) {
             {label}
           </Link>
         ))}
+        {/* In place of the old "Trips" item — the logo above still links to /trips. */}
+        <CopilotNavButton tripId={tripId} variant="sidebar" />
       </nav>
       <Link href="/trips/new" className="travel-cover mt-auto rounded-2xl p-4 pt-10">
         <Mountain aria-hidden className="text-accent mb-3 size-5" />

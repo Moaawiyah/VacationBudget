@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Receipt, Plus, Map, Settings } from "lucide-react";
+import { LayoutDashboard, Receipt, Plus, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDictionary } from "@/components/i18n/locale-provider";
+import { CopilotNavButton } from "@/components/copilot/copilot-nav-button";
 
 export function BottomNav({ tripId }: { tripId: string }) {
   const dict = useDictionary();
@@ -14,22 +15,14 @@ export function BottomNav({ tripId }: { tripId: string }) {
   const tabs = [
     { href: `${base}/dashboard`, label: dict.travel.home, icon: LayoutDashboard },
     { href: `${base}/expenses`, label: dict.nav.expenses, icon: Receipt },
-    { href: "/trips", label: dict.trips.title, icon: Map },
-    { href: `${base}/settings`, label: dict.travel.more, icon: Settings },
   ];
+  const settings = { href: `${base}/settings`, label: dict.travel.more, icon: Settings };
 
   return (
     <nav className="safe-bottom safe-x bg-nav-background fixed inset-x-0 bottom-0 z-20 border-t border-white/10 lg:hidden">
       <div className="mx-auto grid max-w-md grid-cols-5 items-center px-2 py-2">
-        {tabs.slice(0, 2).map((tab) => (
-          <NavItem
-            key={tab.href}
-            {...tab}
-            active={
-              pathname === tab.href ||
-              (tab.href === "/trips" && pathname === `${base}/details`)
-            }
-          />
+        {tabs.map((tab) => (
+          <NavItem key={tab.href} {...tab} active={pathname === tab.href} />
         ))}
 
         <Link
@@ -40,16 +33,9 @@ export function BottomNav({ tripId }: { tripId: string }) {
           <Plus aria-hidden className="h-6 w-6" />
         </Link>
 
-        {tabs.slice(2).map((tab) => (
-          <NavItem
-            key={tab.href}
-            {...tab}
-            active={
-              pathname === tab.href ||
-              (tab.href === "/trips" && pathname === `${base}/details`)
-            }
-          />
-        ))}
+        {/* The trips list stays one tap away via the dashboard header's Back link. */}
+        <CopilotNavButton tripId={tripId} variant="tab" />
+        <NavItem {...settings} active={pathname === settings.href} />
       </div>
     </nav>
   );

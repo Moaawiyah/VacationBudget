@@ -44,6 +44,7 @@ export const heAi = {
     copilotOffline: "נראה שאין חיבור לאינטרנט. בדקו את החיבור ונסו שוב.",
     copilotTimeout: "המענה לקח יותר מדי זמן. נסו שוב.",
     copilotCheckedData: "נבדק: {tools}",
+    copilotNavLabel: "עוזר AI",
     copilotTools: {
       getTripSummary: "סיכום הטיול",
       getBudgetStatus: "מצב התקציב",

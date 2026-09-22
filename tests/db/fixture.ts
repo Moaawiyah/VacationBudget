@@ -146,3 +146,32 @@ export async function addSplitExpense(
     return rows[0].create_expense;
   });
 }
+
+/** Records a settlement via the public.record_settlement RPC, as `asUserId`. */
+export async function recordSettlement(
+  db: PGlite,
+  asUserId: string,
+  opts: {
+    tripId?: string;
+    fromUserId: string;
+    toUserId: string;
+    amount: number;
+    note?: string;
+    requestId?: string;
+  },
+): Promise<string> {
+  return asUser(db, asUserId, async () => {
+    const { rows } = await db.query<{ record_settlement: string }>(
+      "select public.record_settlement($1, $2, $3, $4, $5, $6) as record_settlement",
+      [
+        opts.tripId ?? TRIP,
+        opts.fromUserId,
+        opts.toUserId,
+        opts.amount,
+        opts.note ?? null,
+        opts.requestId ?? null,
+      ],
+    );
+    return rows[0].record_settlement;
+  });
+}

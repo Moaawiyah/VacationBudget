@@ -64,29 +64,42 @@ async function confirmAsMember() {
   // 3. Pre-fill, then the user confirms — through the Server Action's schema.
   const defaults = mapReceiptToExpenseDefaults(receipt, "EUR", categories);
   const input = createExpenseSchema("EUR", en.validation).parse({ ...defaults });
-  // 4. Insert as the member, with the form's idempotency key.
+  // 4. Insert as the member, with the form's idempotency key. The matching
+  //    100%-share row lands in the same transaction, same as create_expense.
   const row = { ...toExpenseRow(input, "EUR"), converted_amount: 0 };
-  return asUser(s.db, MEMBER, () =>
-    s.db.query(
-      `insert into public.expenses (trip_id, user_id, client_request_id, category_id, amount,
-         currency, exchange_rate, converted_amount, description, expense_date, merchant, notes)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-      [
-        TRIP,
-        MEMBER,
-        REQUEST_ID,
-        row.category_id,
-        row.amount,
-        row.currency,
-        row.exchange_rate,
-        row.converted_amount,
-        row.description,
-        row.expense_date,
-        row.merchant,
-        row.notes,
-      ],
-    ),
-  );
+  return asUser(s.db, MEMBER, async () => {
+    await s.db.exec("begin");
+    try {
+      const { rows } = await s.db.query<{ id: string }>(
+        `insert into public.expenses (trip_id, user_id, client_request_id, category_id, amount,
+           currency, exchange_rate, converted_amount, description, expense_date, merchant, notes)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         returning id`,
+        [
+          TRIP,
+          MEMBER,
+          REQUEST_ID,
+          row.category_id,
+          row.amount,
+          row.currency,
+          row.exchange_rate,
+          row.converted_amount,
+          row.description,
+          row.expense_date,
+          row.merchant,
+          row.notes,
+        ],
+      );
+      await s.db.query(
+        "insert into public.expense_splits (expense_id, user_id, share_amount) values ($1, $2, $3)",
+        [rows[0].id, MEMBER, row.amount],
+      );
+      await s.db.exec("commit");
+    } catch (error) {
+      await s.db.exec("rollback");
+      throw error;
+    }
+  });
 }
 
 describe("receipt → validation → confirmation → expense", () => {

@@ -47,12 +47,20 @@ describe("database-derived amounts", () => {
       currency: "USD",
       rate: 2,
     });
-    await asUser(s.db, MEMBER, () =>
-      s.db.query(
+    await asUser(s.db, MEMBER, async () => {
+      // The split must move with the amount in the same transaction, or the
+      // deferred balanced-shares check rejects the update at commit.
+      await s.db.exec("begin");
+      await s.db.query(
         "update public.expenses set amount = 5, converted_amount = 999 where id = $1",
         [id],
-      ),
-    );
+      );
+      await s.db.query(
+        "update public.expense_splits set share_amount = 5 where expense_id = $1",
+        [id],
+      );
+      await s.db.exec("commit");
+    });
     expect(await amounts(id)).toEqual({ rate: 2, converted: 10 });
   });
 });
@@ -74,15 +82,30 @@ describe("trip base currency", () => {
 });
 
 describe("idempotent creation", () => {
+  // A duplicate request id fails the INSERT itself (unique violation, not
+  // deferred), so only the transaction that's expected to succeed needs a
+  // matching split row to clear the balanced-shares check at commit.
   const insertWithRequestId = (userId: string, requestId: string) =>
-    asUser(s.db, userId, () =>
-      s.db.query(
-        `insert into public.expenses (trip_id, user_id, category_id, amount, currency,
-           exchange_rate, converted_amount, description, expense_date, client_request_id)
-         values ($1, $2, $3, 20, 'EUR', 1, 20, 'Lunch', '2026-06-02', $4)`,
-        [TRIP, userId, s.systemCategory, requestId],
-      ),
-    );
+    asUser(s.db, userId, async () => {
+      await s.db.exec("begin");
+      try {
+        const { rows } = await s.db.query<{ id: string }>(
+          `insert into public.expenses (trip_id, user_id, category_id, amount, currency,
+             exchange_rate, converted_amount, description, expense_date, client_request_id)
+           values ($1, $2, $3, 20, 'EUR', 1, 20, 'Lunch', '2026-06-02', $4)
+           returning id`,
+          [TRIP, userId, s.systemCategory, requestId],
+        );
+        await s.db.query(
+          "insert into public.expense_splits (expense_id, user_id, share_amount) values ($1, $2, 20)",
+          [rows[0].id, userId],
+        );
+        await s.db.exec("commit");
+      } catch (error) {
+        await s.db.exec("rollback");
+        throw error;
+      }
+    });
   const REQUEST = "11111111-1111-1111-1111-111111111111";
 
   it("a repeated request id is rejected instead of creating a second expense", async () => {

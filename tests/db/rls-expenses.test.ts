@@ -100,8 +100,11 @@ describe("expense RLS — access from outside the trip", () => {
       s.db.query("select id from public.expenses where trip_id = $1", [TRIP]),
     );
     expect(visible.rows).toHaveLength(0);
+    // The participant-check trigger (0013) fires before RLS's WITH CHECK, so
+    // a non-participant now sees VB006 rather than a bare RLS 42501 — still
+    // a hard rejection, just from the earlier of two independent checks.
     expect(await errorCode(() => addExpense(s.db, STRANGER, s.systemCategory))).toBe(
-      "42501",
+      "VB006",
     );
   });
 

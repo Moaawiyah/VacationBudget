@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, Pencil, Receipt, ScanLine, Wallet, Users } from "lucide-react";
+import { CalendarDays, Pencil, Receipt, ScanLine, Wallet, Users, Scale } from "lucide-react";
 import type { Trip } from "@/types/trip";
 import type { ExpenseWithCategory } from "@/types/expense";
 import type { Dictionary } from "@/lib/i18n/types";
@@ -33,6 +33,7 @@ export function TripDetailsView({
   const actions = [
     ...(isOwner ? [[`/trips/${trip.id}/edit`, dict.common.edit, Pencil] as const] : []),
     [`${base}/companions`, dict.travel.companions, Users],
+    [`${base}/balances`, dict.balances.title, Scale],
     [`${base}/plan`, dict.dashboard.budget, Wallet],
     [`${base}/expenses`, dict.expenses.title, Receipt],
     [`${base}/expenses/receipt`, dict.receipts.scanReceipt, ScanLine],

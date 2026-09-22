@@ -2,6 +2,7 @@ import { AuthService } from "./auth-service";
 import { CategoryService } from "./category-service";
 import { ExpenseService } from "./expense-service";
 import { PlannedBudgetService } from "./planned-budget-service";
+import { SettlementService } from "./settlement-service";
 import { TripService } from "./trip-service";
 import { CompanionService } from "./companion-service";
 import type { DbClient } from "./types";
@@ -18,6 +19,7 @@ export class VacationBudgetSDK {
   readonly categories: CategoryService;
   readonly plannedBudgets: PlannedBudgetService;
   readonly companions: CompanionService;
+  readonly settlements: SettlementService;
 
   /**
    * @param db the request's Supabase client (user session; RLS applies)
@@ -31,5 +33,6 @@ export class VacationBudgetSDK {
     this.categories = new CategoryService(db);
     this.plannedBudgets = new PlannedBudgetService(db);
     this.companions = new CompanionService(admin);
+    this.settlements = new SettlementService(db);
   }
 }

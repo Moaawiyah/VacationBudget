@@ -13,6 +13,7 @@ import {
   Wallet,
   Users,
   Mail,
+  Scale,
 } from "lucide-react";
 import { useDictionary } from "@/components/i18n/locale-provider";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ export function Sidebar({ tripId }: { tripId: string }) {
     [base + "/expenses/receipt", dict.receipts.scanReceipt, ScanLine],
     [base + "/analytics", dict.travel.analytics, ChartNoAxesCombined],
     [base + "/companions", dict.travel.companions, Users],
+    [base + "/balances", dict.balances.title, Scale],
     ["/invitations", dict.travel.invitations, Mail],
     [base + "/plan", dict.nav.plan, Wallet],
     [base + "/settings", dict.nav.settings, Settings],

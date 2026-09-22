@@ -28,6 +28,21 @@ export function expenseFields(t: Dictionary["validation"]) {
     merchant: z.string().trim().max(200).optional().or(z.literal("")),
     location: z.string().trim().max(200).optional().or(z.literal("")),
     notes: z.string().trim().max(NOTES_MAX_LENGTH).optional().or(z.literal("")),
+    // Who actually paid, and how it's divided — both optional. Omitted,
+    // ExpenseService falls back to "the author paid it all themselves",
+    // today's behavior. The database (0013/0014) is the authoritative check
+    // on whether `splits` actually reconciles; this only shapes the data.
+    paid_by: z.string().uuid().optional(),
+    split_method: z.enum(["equal", "exact", "percentage"]).optional(),
+    splits: z
+      .array(
+        z.object({
+          user_id: z.string().uuid(),
+          share_amount: z.coerce.number().nonnegative(),
+          share_percent: z.coerce.number().min(0).max(100).nullable().optional(),
+        }),
+      )
+      .optional(),
   });
 }
 

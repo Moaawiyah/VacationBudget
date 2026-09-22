@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check } from "lucide-react";
@@ -9,8 +9,10 @@ import { useDictionary } from "@/components/i18n/locale-provider";
 import type { Category } from "@/types/category";
 import { CategoryPicker } from "@/components/expenses/category-picker";
 import { Button } from "@/components/ui/button";
+import type { Companion } from "@/types/companion";
 import { AmountCurrencyField, ExchangeRateField } from "./expense-amount-fields";
 import { ExpenseDetailFields } from "./expense-detail-fields";
+import { SplitFields } from "./split-fields";
 import {
   markRateManualOnEdit,
   saveRecentCategory,
@@ -18,6 +20,7 @@ import {
   useRecentCategory,
   type ExpenseFormValues,
 } from "./use-expense-form-effects";
+import { useSplitFields } from "./use-split-fields";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -27,6 +30,8 @@ type ExpenseFormProps = {
   tripId: string;
   baseCurrency: string;
   categories: Category[];
+  currentUserId: string;
+  companions: Companion[];
   defaultValues?: Partial<ExpenseFormValues>;
   onSubmit: (input: ExpenseInput) => Promise<{ error: string } | void>;
   submitLabel: string;
@@ -34,17 +39,25 @@ type ExpenseFormProps = {
   rememberCategory?: boolean;
   /** Calls out the category picker while it's empty — see CategoryPicker. */
   highlightCategory?: boolean;
+  /** A split computed elsewhere (receipt item assignment) to adopt — see ReceiptItemSplit. */
+  pendingSplit?: { token: number; paidBy: string; amounts: Record<string, number> } | null;
+  /** Hides the built-in "split with others" UI — the caller is showing its own (item splitting). */
+  hideSplitFields?: boolean;
 };
 
 export function ExpenseForm({
   tripId,
   baseCurrency,
   categories,
+  currentUserId,
+  companions,
   defaultValues,
   onSubmit,
   submitLabel,
   rememberCategory = false,
   highlightCategory = false,
+  pendingSplit,
+  hideSplitFields = false,
 }: ExpenseFormProps) {
   const dict = useDictionary();
   const [isPending, startTransition] = useTransition();
@@ -68,6 +81,7 @@ export function ExpenseForm({
   });
 
   const currency = watch("currency");
+  const amount = watch("amount");
   useRecentCategory(
     rememberCategory && !defaultValues?.category_id,
     tripId,
@@ -75,12 +89,35 @@ export function ExpenseForm({
     setValue,
   );
   useLiveExchangeRate(currency, baseCurrency, setValue);
+  const split = useSplitFields(currentUserId, Number(amount) || undefined, currency);
+  useEffect(() => {
+    if (pendingSplit) split.applyComputedSplit(pendingSplit.paidBy, pendingSplit.amounts);
+    // Re-apply only when a *new* computation arrives (token), not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingSplit?.token]);
 
   function submit(data: ExpenseInput) {
     setFormError(null);
+    if (split.state.enabled && !split.result?.ok) {
+      setFormError(dict.expenseForm.splitInvalid_generic);
+      return;
+    }
     if (rememberCategory) saveRecentCategory(tripId, data.category_id);
+    const finalData: ExpenseInput = {
+      ...data,
+      paid_by: split.state.paidBy,
+      split_method: split.state.enabled ? split.state.method : "equal",
+      splits:
+        split.state.enabled && split.result?.ok
+          ? split.result.shares.map((s) => ({
+              user_id: s.userId,
+              share_amount: s.shareAmount,
+              share_percent: s.sharePercent,
+            }))
+          : undefined,
+    };
     startTransition(async () => {
-      const result = await onSubmit(data);
+      const result = await onSubmit(finalData);
       if (result?.error) setFormError(result.error);
     });
   }
@@ -118,6 +155,10 @@ export function ExpenseForm({
           />
         )}
       />
+
+      {!hideSplitFields && companions.length > 1 && (
+        <SplitFields split={split} companions={companions} currency={currency} />
+      )}
 
       <ExpenseDetailFields register={register} errors={errors} />
 

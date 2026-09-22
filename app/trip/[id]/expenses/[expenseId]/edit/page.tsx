@@ -24,11 +24,15 @@ export default async function EditExpensePage({
 
   if (!trip || !expense) notFound();
 
-  // Mirrors the 0009 RLS rule (author or trip owner) so a member sees a
-  // read-only view of someone else's expense instead of a form that would
-  // only ever be refused. RLS still decides; this just avoids the dead end.
+  // Mirrors the 0009 + 0014 RLS rule (author, payer, or trip owner) so a
+  // member sees a read-only view of someone else's expense instead of a
+  // form that would only ever be refused. RLS still decides; this just
+  // avoids the dead end.
   const canEdit =
-    Boolean(user) && (expense.user_id === user!.id || trip.user_id === user!.id);
+    Boolean(user) &&
+    (expense.user_id === user!.id ||
+      expense.paid_by === user!.id ||
+      trip.user_id === user!.id);
 
   if (!canEdit) {
     return (
@@ -54,7 +58,11 @@ export default async function EditExpensePage({
     );
   }
 
-  const categories = await sdk.categories.listPickable(user!.id, expense.category_id);
+  const [categories, companionResult] = await Promise.all([
+    sdk.categories.listPickable(user!.id, expense.category_id),
+    sdk.companions.listForTrip(user!.id, id),
+  ]);
+  const companions = "companions" in companionResult ? companionResult.companions : [];
 
   return (
     <main className="safe-x flex flex-1 flex-col gap-4 p-6">
@@ -66,6 +74,8 @@ export default async function EditExpensePage({
         tripId={id}
         baseCurrency={trip.base_currency}
         categories={categories}
+        currentUserId={user!.id}
+        companions={companions}
         expense={expense}
       />
       <DeleteExpenseButton tripId={id} expenseId={expenseId} />

@@ -14,3 +14,10 @@ export type TripInvitation = {
   inviterUsername: string;
   createdAt: string;
 };
+
+/** First+last name if either is set, otherwise the @username. */
+export function companionDisplayName(
+  person: Pick<Companion, "firstName" | "surname" | "username">,
+): string {
+  return [person.firstName, person.surname].filter(Boolean).join(" ") || `@${person.username}`;
+}

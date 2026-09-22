@@ -5,6 +5,7 @@ import { heTrips } from "./trips";
 import { heInsights } from "./insights";
 import { heReceipts } from "./receipts";
 import { heErrors } from "./errors";
+import { heBalances } from "./balances";
 
 const he: Dictionary = {
   ...heCore,
@@ -13,6 +14,7 @@ const he: Dictionary = {
   ...heReceipts,
   ...heTravel,
   ...heErrors,
+  ...heBalances,
 };
 
 export default he;

@@ -13,6 +13,7 @@ import {
 } from "@/lib/receipts/receipt-errors";
 import { analyzeReceiptResponseSchema } from "@/lib/validation/receipt";
 import type { Category } from "@/types/category";
+import type { Companion } from "@/types/companion";
 import type { ExtractedReceipt } from "@/types/receipt";
 import { ReceiptDropzone } from "./receipt-dropzone";
 import { ReceiptPreviewForm } from "./receipt-preview-form";
@@ -43,10 +44,14 @@ export function ReceiptUploadFlow({
   tripId,
   baseCurrency,
   categories,
+  currentUserId,
+  companions,
 }: {
   tripId: string;
   baseCurrency: string;
   categories: Category[];
+  currentUserId: string;
+  companions: Companion[];
 }) {
   const dict = useDictionary();
   const [pending, setPending] = useState(false);
@@ -69,6 +74,8 @@ export function ReceiptUploadFlow({
         tripId={tripId}
         baseCurrency={baseCurrency}
         categories={categories}
+        currentUserId={currentUserId}
+        companions={companions}
         file={result.file}
         receipt={result.receipt}
         onRetake={() => setResult(null)}

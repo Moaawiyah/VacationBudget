@@ -87,9 +87,13 @@ describe("ExpenseService writes", () => {
   });
 
   it("updates via update_expense, and scopes delete by expense and trip", async () => {
-    const hit = { data: [{ id: "exp-1" }] };
+    // update() reads back the current payer first (to fall back to it, not
+    // the editor, when the form sent no split), then delete() reads back
+    // the affected row — two separate "expenses" queries, in that order.
+    const currentPayer = { data: { paid_by: "user-1" } };
+    const deleted = { data: [{ id: "exp-1" }] };
     const { db, calls, rpcCalls } = createFakeDb(
-      { expenses: [hit] },
+      { expenses: [currentPayer, deleted] },
       { update_expense: [{ data: null }] },
     );
     const expenses = new ExpenseService(db);
@@ -97,6 +101,7 @@ describe("ExpenseService writes", () => {
     expect(await expenses.delete("trip-1", "exp-1")).toEqual({});
     expect(rpcCalls[0]).toMatchObject({ fn: "update_expense" });
     expect(callsOf(calls, "expenses", "eq")).toEqual([
+      ["id", "exp-1"],
       ["id", "exp-1"],
       ["trip_id", "trip-1"],
     ]);

@@ -1,5 +1,5 @@
-import { convertCurrency } from "@/lib/currency/convert";
 import type { ExpenseInput } from "@/lib/validation/expense";
+import type { ExpenseForBalance } from "@/lib/finance/balances";
 import {
   toExpense,
   toExpenseWithCategory,
@@ -7,35 +7,10 @@ import {
   type ExpenseWithCategory,
 } from "@/types/expense";
 import { BaseService } from "./base-service";
+import { toExpenseRow, toSplitsPayload } from "./expense-payload";
 import type { DbClient, WriteResult } from "./types";
 
-/**
- * Column values for an expense row, from validated input. Same-currency
- * expenses always convert at 1 (a client-sent rate is ignored), and
- * converted_amount is always derived here, never trusted from the client.
- * createExpenseSchema guarantees exchange_rate whenever the currencies differ.
- *
- * rate_source/rate_date default to "manual"/today when the form never set
- * them (same-currency expenses, or a rate typed with no live lookup) — see
- * lib/currency/exchange-rate.ts and 0016_historical_fx.sql.
- */
-export function toExpenseRow(input: ExpenseInput, baseCurrency: string) {
-  const exchangeRate = input.currency === baseCurrency ? 1 : input.exchange_rate!;
-  return {
-    category_id: input.category_id,
-    amount: input.amount,
-    currency: input.currency,
-    exchange_rate: exchangeRate,
-    converted_amount: convertCurrency(input.amount, exchangeRate),
-    description: input.description,
-    expense_date: input.expense_date,
-    merchant: input.merchant || null,
-    location: input.location || null,
-    notes: input.notes || null,
-    rate_source: input.rate_source ?? "manual",
-    rate_date: input.rate_date ?? new Date().toISOString().slice(0, 10),
-  };
-}
+export { toExpenseRow } from "./expense-payload";
 
 /** Where an expense belongs: its owner, its trip and that trip's base currency. */
 export type ExpenseScope = { userId: string; tripId: string; baseCurrency: string };
@@ -59,6 +34,30 @@ export class ExpenseService extends BaseService {
   }
 
   /**
+   * Every expense's payer, currency and converted amount, with its splits
+   * (each participant's share, in the expense's own currency) — exactly the
+   * shape lib/finance/balances.ts's calculateBalances expects. Nothing here
+   * does the arithmetic; this only reads the rows.
+   */
+  listWithSplitsForTrip(tripId: string): Promise<ExpenseForBalance[]> {
+    return this.memo(`trip:${tripId}:splits`, async () => {
+      const { data } = await this.db
+        .from("expenses")
+        .select("paid_by, currency, converted_amount, expense_splits(user_id, share_amount)")
+        .eq("trip_id", tripId);
+      return (data ?? []).map((row) => ({
+        paidBy: row.paid_by,
+        currency: row.currency,
+        convertedAmount: Number(row.converted_amount),
+        splits: (row.expense_splits ?? []).map((s) => ({
+          userId: s.user_id,
+          shareAmount: Number(s.share_amount),
+        })),
+      }));
+    });
+  }
+
+  /**
    * One expense, scoped to its trip too: an expenseId from another trip
    * (stale link, edited URL) returns null instead of being edited against
    * the wrong trip's base currency.
@@ -76,9 +75,10 @@ export class ExpenseService extends BaseService {
   /**
    * Creates the expense and its split atomically (create_expense, 0014) —
    * every expense needs a balanced expense_splits row, and the client can't
-   * otherwise run both inserts in one transaction. Until the splitting UI
-   * (Stage 9) can name real participants, the whole amount is a single
-   * 100%-share row for the payer — exactly today's un-split behavior.
+   * otherwise run both inserts in one transaction. Without a split from the
+   * form (`input.splits`), the whole amount is a single 100%-share row for
+   * the payer — the un-split behavior, and the default when splitting isn't
+   * turned on.
    *
    * `requestId` identifies one "create" intent; create_expense returns the
    * same id for a repeated one (a double tap, or the automatic Server Action
@@ -91,8 +91,12 @@ export class ExpenseService extends BaseService {
   ): Promise<WriteResult> {
     const { error } = await this.db.rpc("create_expense", {
       p_trip_id: scope.tripId,
-      p_expense: { ...toExpenseRow(input, scope.baseCurrency), paid_by: scope.userId, split_method: "equal" },
-      p_splits: [{ user_id: scope.userId, share_amount: input.amount, share_percent: null }],
+      p_expense: {
+        ...toExpenseRow(input, scope.baseCurrency),
+        paid_by: input.paid_by ?? scope.userId,
+        split_method: input.split_method ?? "equal",
+      },
+      p_splits: toSplitsPayload(input, scope.userId),
       p_request_id: requestId ?? null,
     });
     if (error) return this.fail("create", error);
@@ -102,21 +106,38 @@ export class ExpenseService extends BaseService {
 
   /**
    * Who may change an expense is decided by RLS (0009 + 0014: its author,
-   * its payer, or the trip owner). update_expense (0014) re-asserts the
-   * single-payer split alongside the amount, so an edited amount can't leave
-   * a stale share behind — a real split (Stage 9) will pass the actual
-   * shares here instead. A blocked update raises 42501 (0014), which maps
-   * to the same permission_denied code a refused row match used to.
+   * its payer, or the trip owner) — so an owner fixing a member's typo must
+   * not, as a side effect, reassign the expense's payer to themselves. When
+   * the form didn't touch the split (`input.splits` unset), the fallback
+   * share goes to the expense's *existing* payer, read back first, not to
+   * whoever happens to be editing it. update_expense (0014) re-asserts that
+   * share alongside the amount, so an edited amount can't leave a stale
+   * share behind. A blocked update raises 42501 (0014), which maps to the
+   * same permission_denied code a refused row match used to.
+   *
+   * Editing an expense that already has a real multi-person split, without
+   * reopening the split UI, collapses it back to that single share — the
+   * edit form doesn't yet reload an existing split to edit in place.
    */
   async update(
     scope: ExpenseScope,
     expenseId: string,
     input: ExpenseInput,
   ): Promise<WriteResult> {
+    const { data: current } = await this.db
+      .from("expenses")
+      .select("paid_by")
+      .eq("id", expenseId)
+      .single();
+    const payer = input.paid_by ?? current?.paid_by ?? scope.userId;
     const { error } = await this.db.rpc("update_expense", {
       p_expense_id: expenseId,
-      p_expense: toExpenseRow(input, scope.baseCurrency),
-      p_splits: [{ user_id: scope.userId, share_amount: input.amount, share_percent: null }],
+      p_expense: {
+        ...toExpenseRow(input, scope.baseCurrency),
+        paid_by: payer,
+        split_method: input.split_method ?? "equal",
+      },
+      p_splits: toSplitsPayload(input, payer),
     });
     if (error) return this.fail("update", error);
     this.invalidate();

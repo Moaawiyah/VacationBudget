@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Languages, Receipt as ReceiptIcon } from "lucide-react";
 import { createExpense } from "@/app/trip/[id]/expenses/actions";
 import { ExpenseForm } from "@/components/expenses/expense-form";
+import { Chip, ChipRow } from "@/components/expenses/split-chip";
 import { useRequestId } from "@/components/expenses/use-request-id";
 import { useDictionary } from "@/components/i18n/locale-provider";
 import { mapReceiptToExpenseDefaults } from "@/lib/receipts/map-to-expense";
 import { warningMessages } from "@/lib/receipts/receipt-warnings";
 import type { Category } from "@/types/category";
+import type { Companion } from "@/types/companion";
 import type { ExtractedReceipt } from "@/types/receipt";
 import { Button } from "@/components/ui/button";
+import { ReceiptItemSplit } from "./receipt-item-split";
 
 /**
  * The editable review step: shows what the pipeline extracted (warnings,
@@ -23,6 +26,8 @@ export function ReceiptPreviewForm({
   tripId,
   baseCurrency,
   categories,
+  currentUserId,
+  companions,
   file,
   receipt,
   onRetake,
@@ -30,14 +35,22 @@ export function ReceiptPreviewForm({
   tripId: string;
   baseCurrency: string;
   categories: Category[];
+  currentUserId: string;
+  companions: Companion[];
   file: File;
   receipt: ExtractedReceipt;
   onRetake: () => void;
 }) {
   const copy = useDictionary();
   const dict = copy.receipts;
+  const t = copy.expenseForm;
   // One key per scanned receipt: confirming it twice creates one expense.
   const requestId = useRequestId();
+  const [splitMode, setSplitMode] = useState<"whole" | "items">("whole");
+  const [pendingSplit, setPendingSplit] = useState<
+    { token: number; paidBy: string; amounts: Record<string, number> } | null
+  >(null);
+  const itemizable = companions.length > 1 && receipt.line_items.some((i) => i.total_price != null);
   // Deriving the URL during render (not via setState in an effect) avoids an
   // extra render; only the revocation needs to run as an effect.
   const previewUrl = useMemo(() => URL.createObjectURL(file), [file]);
@@ -120,14 +133,41 @@ export function ReceiptPreviewForm({
         {dict.retake}
       </Button>
 
+      {itemizable && (
+        <ChipRow>
+          <Chip selected={splitMode === "whole"} onClick={() => setSplitMode("whole")}>
+            {t.splitWholeReceipt}
+          </Chip>
+          <Chip selected={splitMode === "items"} onClick={() => setSplitMode("items")}>
+            {t.splitByItems}
+          </Chip>
+        </ChipRow>
+      )}
+      {itemizable && splitMode === "items" && (
+        <ReceiptItemSplit
+          companions={companions}
+          currentUserId={currentUserId}
+          amount={defaults.amount ?? receipt.total ?? 0}
+          currency={defaults.currency ?? baseCurrency}
+          items={receipt.line_items}
+          onApply={(paidBy, amounts) =>
+            setPendingSplit({ token: Date.now(), paidBy, amounts })
+          }
+        />
+      )}
+
       <ExpenseForm
         tripId={tripId}
         baseCurrency={baseCurrency}
         categories={categories}
+        currentUserId={currentUserId}
+        companions={companions}
         defaultValues={defaults}
         onSubmit={(data) => createExpense(tripId, data, requestId)}
         submitLabel={dict.createExpense}
         highlightCategory
+        pendingSplit={pendingSplit}
+        hideSplitFields={itemizable && splitMode === "items"}
       />
     </div>
   );

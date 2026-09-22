@@ -18,6 +18,11 @@ const BY_CODE: Record<string, AppErrorCode> = {
   VB002: "permission_denied", // expense owner/trip is immutable (0010)
   "23505": "duplicate",
   VB001: "currency_locked", // trip currency locked once expenses exist (0010)
+  VB003: "invalid_data", // split shares don't add up to the expense total (0013)
+  VB004: "invalid_data", // split percentages don't add up to 100 (0013)
+  VB005: "invalid_data", // an "equal" split isn't actually equal (0013)
+  VB006: "permission_denied", // payer/split participant isn't a trip participant (0013)
+  VB007: "invalid_data", // a share is finer than the currency's smallest unit (0013)
   "23514": "invalid_data", // check constraint
   "23503": "invalid_data", // foreign key
   "23502": "invalid_data", // not null

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { UserPlus, X } from "lucide-react";
 import { useDictionary } from "@/components/i18n/locale-provider";
-import type { Companion } from "@/types/companion";
+import { companionDisplayName, type Companion } from "@/types/companion";
 import { inviteCompanion, removeCompanion } from "@/app/trip/[id]/companions/actions";
 import { cn } from "@/lib/utils";
 
@@ -91,10 +91,7 @@ export function CompanionManager({
               {(person.firstName || person.username).slice(0, 1).toUpperCase()}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate font-medium">
-                {[person.firstName, person.surname].filter(Boolean).join(" ") ||
-                  `@${person.username}`}
-              </p>
+              <p className="truncate font-medium">{companionDisplayName(person)}</p>
               <p className="text-muted-foreground text-xs">
                 @{person.username} ·{" "}
                 {person.status === "owner"

@@ -10,13 +10,15 @@ export default async function ReceiptExpensePage({
   const { id } = await params;
   const sdk = await getSdk();
   const user = await sdk.auth.getUser();
-  const [trip, categories, dict] = await Promise.all([
+  const [trip, categories, dict, companionResult] = await Promise.all([
     sdk.trips.get(id),
     sdk.categories.listPickable(user?.id ?? ""),
     getDictionary(),
+    user ? sdk.companions.listForTrip(user.id, id) : Promise.resolve({ error: "" }),
   ]);
 
-  if (!trip) notFound();
+  if (!trip || !user) notFound();
+  const companions = "companions" in companionResult ? companionResult.companions : [];
 
   return (
     <main className="safe-x flex flex-1 flex-col gap-4 p-6">
@@ -28,6 +30,8 @@ export default async function ReceiptExpensePage({
         tripId={id}
         baseCurrency={trip.base_currency}
         categories={categories}
+        currentUserId={user.id}
+        companions={companions}
       />
     </main>
   );

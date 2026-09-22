@@ -32,9 +32,12 @@ export const enInsights = {
     categoryChartTitle: "Spending by category",
     dailyChartTitle: "Spending by day",
     plannedActualChartTitle: "Planned vs actual",
+    travelerChartTitle: "Spending by traveler",
     spentSeries: "Spent",
     plannedSeries: "Planned",
     actualSeries: "Actual",
+    paidSeries: "Paid",
+    personalShareSeries: "Personal share",
     otherCategory: "Other",
   },
   plan: {

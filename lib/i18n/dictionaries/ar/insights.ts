@@ -37,9 +37,12 @@ export const arInsights: Pick<
     categoryChartTitle: "الإنفاق حسب الفئة",
     dailyChartTitle: "الإنفاق حسب اليوم",
     plannedActualChartTitle: "المخطط مقابل الفعلي",
+    travelerChartTitle: "الإنفاق حسب المسافر",
     spentSeries: "أُنفق",
     plannedSeries: "مخطط",
     actualSeries: "فعلي",
+    paidSeries: "مدفوع",
+    personalShareSeries: "الحصة الشخصية",
     otherCategory: "أخرى",
   },
   plan: {

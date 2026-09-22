@@ -37,9 +37,12 @@ export const heInsights: Pick<
     categoryChartTitle: "הוצאות לפי קטגוריה",
     dailyChartTitle: "הוצאות לפי יום",
     plannedActualChartTitle: "מתוכנן מול בפועל",
+    travelerChartTitle: "הוצאות לפי מטייל",
     spentSeries: "הוצאה",
     plannedSeries: "מתוכנן",
     actualSeries: "בפועל",
+    paidSeries: "שולם",
+    personalShareSeries: "חלק אישי",
     otherCategory: "אחר",
   },
   plan: {

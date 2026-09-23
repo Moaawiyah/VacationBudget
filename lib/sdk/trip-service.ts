@@ -100,16 +100,20 @@ export class TripService extends BaseService {
     userId: string,
     input: TripInput,
   ): Promise<{ id: string } | { error: string; code?: AppErrorCode }> {
-    const { data, error } = await this.db
+    // The id is generated here rather than read back with RETURNING: trips'
+    // SELECT policy (0008's trips_select_participant) goes through
+    // is_trip_participant, which reads `trips` from the statement's starting
+    // snapshot and so can't see the row being inserted. Postgres then rejects
+    // `insert ... returning` as an RLS violation (42501) for every user. A
+    // plain insert is checked only against trips_insert_own (auth.uid() = user_id).
+    const id = crypto.randomUUID();
+    const { error } = await this.db
       .from("trips")
       // user_id always comes from the session, never from the form.
-      .insert({ user_id: userId, ...toTripRow(input) })
-      .select("id")
-      .single();
-    if (error || !data)
-      return this.fail("create", error ?? { message: "No trip returned" });
+      .insert({ id, user_id: userId, ...toTripRow(input) });
+    if (error) return this.fail("create", error);
     this.invalidate();
-    return { id: data.id };
+    return { id };
   }
 
   async update(userId: string, tripId: string, input: TripInput): Promise<WriteResult> {

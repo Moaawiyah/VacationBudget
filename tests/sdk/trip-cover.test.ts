@@ -17,7 +17,7 @@ const cover: TripCover = {
 
 describe("trip cover persistence", () => {
   it("stores the selected cover's metadata with the new trip", async () => {
-    const { db, calls } = createFakeDb({ trips: [{ data: { id: "new-trip" } }] });
+    const { db, calls } = createFakeDb({ trips: [{}] });
     await new TripService(db).create("user-1", { ...tripInput, cover });
     const [inserted] = callsOf(calls, "trips", "insert")[0] as [Record<string, unknown>];
     expect(inserted).toMatchObject({

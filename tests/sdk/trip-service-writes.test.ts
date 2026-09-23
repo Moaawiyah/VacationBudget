@@ -4,17 +4,24 @@ import { callsOf, createFakeDb, muteErrorLog } from "../helpers/fake-db";
 import { tripInput, tripRow } from "../helpers/fixtures";
 
 describe("TripService writes", () => {
-  it("creates a trip for the session user and returns its id", async () => {
-    const { db, calls } = createFakeDb({ trips: [{ data: { id: "new-trip" } }] });
-    expect(await new TripService(db).create("user-1", tripInput)).toEqual({
-      id: "new-trip",
-    });
+  it("creates a trip for the session user with a server-generated id, and returns it", async () => {
+    const { db, calls } = createFakeDb({ trips: [{}] });
+    const result = await new TripService(db).create("user-1", tripInput);
     const [inserted] = callsOf(calls, "trips", "insert")[0] as [Record<string, unknown>];
+    expect(result).toEqual({ id: inserted.id });
+    expect(inserted.id).toMatch(/^[0-9a-f-]{36}$/);
     expect(inserted).toMatchObject({
       user_id: "user-1",
       name: "Rome",
       description: null,
     });
+  });
+
+  it("never reads the new row back (insert ... RETURNING is refused by trips' SELECT policy)", async () => {
+    const { db, calls } = createFakeDb({ trips: [{}] });
+    await new TripService(db).create("user-1", tripInput);
+    expect(callsOf(calls, "trips", "select")).toEqual([]);
+    expect(callsOf(calls, "trips", "single")).toEqual([]);
   });
 
   it("returns and logs the database error when create fails", async () => {
@@ -25,14 +32,6 @@ describe("TripService writes", () => {
     expect(JSON.stringify(result)).not.toContain("insert denied");
     expect(log.mock.calls[0]?.[0]).toContain("insert denied");
     expect(log.mock.calls[0]?.[0]).toContain('"message":"trips.create failed"');
-  });
-
-  it("reports a create that returned no row", async () => {
-    muteErrorLog();
-    const { db } = createFakeDb();
-    expect(await new TripService(db).create("user-1", tripInput)).toMatchObject({
-      code: "unknown",
-    });
   });
 
   it("scopes update and delete to the owner", async () => {

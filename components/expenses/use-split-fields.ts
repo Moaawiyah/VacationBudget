@@ -35,8 +35,10 @@ export function useSplitFields(
   currentUserId: string,
   amount: number | undefined,
   currency: string,
+  /** An existing expense's saved split (see split-state.ts); a new expense starts from "you paid, no split". */
+  initial?: SplitFieldsState,
 ) {
-  const [state, setState] = useState<SplitFieldsState>(() => initialState(currentUserId));
+  const [state, setState] = useState<SplitFieldsState>(() => initial ?? initialState(currentUserId));
 
   const result: SplitResult | null = useMemo(() => {
     if (!state.enabled || !amount || amount <= 0) return null;

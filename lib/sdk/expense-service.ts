@@ -12,6 +12,9 @@ import type { DbClient, WriteResult } from "./types";
 
 export { toExpenseRow } from "./expense-payload";
 
+/** One participant's share of an expense, in the expense's own currency. */
+export type ExpenseSplit = { userId: string; shareAmount: number; sharePercent: number | null };
+
 /** Where an expense belongs: its owner, its trip and that trip's base currency. */
 export type ExpenseScope = { userId: string; tripId: string; baseCurrency: string };
 
@@ -62,6 +65,24 @@ export class ExpenseService extends BaseService {
    * (stale link, edited URL) returns null instead of being edited against
    * the wrong trip's base currency.
    */
+  /**
+   * One expense's split rows (who owes what share), for the edit form to
+   * start from. RLS (0014's expense_splits_select_visible) limits them to
+   * the expense's trip participants, same as the expense itself.
+   */
+  async getSplits(expenseId: string): Promise<ExpenseSplit[]> {
+    const { data } = await this.db
+      .from("expense_splits")
+      .select("user_id, share_amount, share_percent")
+      .eq("expense_id", expenseId)
+      .order("created_at");
+    return (data ?? []).map((row) => ({
+      userId: row.user_id,
+      shareAmount: Number(row.share_amount),
+      sharePercent: row.share_percent === null ? null : Number(row.share_percent),
+    }));
+  }
+
   async get(tripId: string, expenseId: string): Promise<Expense | null> {
     const { data } = await this.db
       .from("expenses")

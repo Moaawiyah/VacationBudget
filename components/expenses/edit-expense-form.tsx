@@ -6,6 +6,8 @@ import { useDictionary } from "@/components/i18n/locale-provider";
 import type { Category } from "@/types/category";
 import type { Companion } from "@/types/companion";
 import type { Expense } from "@/types/expense";
+import type { ExpenseSplit } from "@/lib/sdk/expense-service";
+import { splitStateFromExpense } from "./split-state";
 
 export function EditExpenseForm({
   tripId,
@@ -14,6 +16,7 @@ export function EditExpenseForm({
   currentUserId,
   companions,
   expense,
+  splits,
 }: {
   tripId: string;
   baseCurrency: string;
@@ -21,6 +24,7 @@ export function EditExpenseForm({
   currentUserId: string;
   companions: Companion[];
   expense: Expense;
+  splits: ExpenseSplit[];
 }) {
   const dict = useDictionary();
   return (
@@ -30,6 +34,7 @@ export function EditExpenseForm({
       categories={categories}
       currentUserId={currentUserId}
       companions={companions}
+      initialSplit={splitStateFromExpense(expense, splits)}
       defaultValues={{
         amount: expense.amount,
         currency: expense.currency,

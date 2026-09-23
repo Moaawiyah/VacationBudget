@@ -20,7 +20,7 @@ import {
   useRecentCategory,
   type ExpenseFormValues,
 } from "./use-expense-form-effects";
-import { useSplitFields } from "./use-split-fields";
+import { useSplitFields, type SplitFieldsState } from "./use-split-fields";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -43,6 +43,8 @@ type ExpenseFormProps = {
   pendingSplit?: { token: number; paidBy: string; amounts: Record<string, number> } | null;
   /** Hides the built-in "split with others" UI — the caller is showing its own (item splitting). */
   hideSplitFields?: boolean;
+  /** Editing: the expense's saved payer and split, so saving keeps them unless changed. */
+  initialSplit?: SplitFieldsState;
 };
 
 export function ExpenseForm({
@@ -58,6 +60,7 @@ export function ExpenseForm({
   highlightCategory = false,
   pendingSplit,
   hideSplitFields = false,
+  initialSplit,
 }: ExpenseFormProps) {
   const dict = useDictionary();
   const [isPending, startTransition] = useTransition();
@@ -89,7 +92,7 @@ export function ExpenseForm({
     setValue,
   );
   useLiveExchangeRate(currency, baseCurrency, setValue);
-  const split = useSplitFields(currentUserId, Number(amount) || undefined, currency);
+  const split = useSplitFields(currentUserId, Number(amount) || undefined, currency, initialSplit);
   useEffect(() => {
     if (pendingSplit) split.applyComputedSplit(pendingSplit.paidBy, pendingSplit.amounts);
     // Re-apply only when a *new* computation arrives (token), not on every render.

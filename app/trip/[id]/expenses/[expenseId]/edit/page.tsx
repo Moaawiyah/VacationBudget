@@ -58,9 +58,10 @@ export default async function EditExpensePage({
     );
   }
 
-  const [categories, companionResult] = await Promise.all([
+  const [categories, companionResult, splits] = await Promise.all([
     sdk.categories.listPickable(user!.id, expense.category_id),
     sdk.companions.listForTrip(user!.id, id),
+    sdk.expenses.getSplits(expense.id),
   ]);
   const companions = "companions" in companionResult ? companionResult.companions : [];
 
@@ -77,6 +78,7 @@ export default async function EditExpensePage({
         currentUserId={user!.id}
         companions={companions}
         expense={expense}
+        splits={splits}
       />
       <DeleteExpenseButton tripId={id} expenseId={expenseId} />
     </main>

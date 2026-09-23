@@ -173,6 +173,40 @@ button {
   background-size: cover;
   background-position: center;
 }
+/* Trip Finance Copilot (components/copilot) — entrance and typing dots.
+   Disabled by the reduced-motion rule below. */
+.copilot-backdrop {
+  animation: copilot-fade 180ms ease-out;
+}
+.copilot-sheet {
+  animation: copilot-rise 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.copilot-dot {
+  animation: copilot-bounce 1s infinite ease-in-out;
+}
+@keyframes copilot-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes copilot-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes copilot-bounce {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -65,6 +65,8 @@ export const enTrips = {
     savedToast: "Expense added",
     today: "Today",
     yesterday: "Yesterday",
+    paidByName: "Paid by {name}",
+    paidByYou: "Paid by you",
   },
   expenseForm: {
     exchangeRateLabel: "Exchange rate (1 {currency} = ? {base})",

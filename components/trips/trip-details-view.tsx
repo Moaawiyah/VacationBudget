@@ -7,6 +7,7 @@ import { TripDetailsOverview } from "./trip-details-overview";
 import { formatDateRange } from "@/lib/format-date";
 import { calculateTripDays } from "@/lib/calculations/trip";
 import { ExpenseRow } from "@/components/expenses/expense-row";
+import { payerLabel, payerNameMap } from "@/components/expenses/payer-label";
 import type { Companion } from "@/types/companion";
 import { cn } from "@/lib/utils";
 import { coverFromTrip } from "@/lib/images/cover-schema";
@@ -20,6 +21,7 @@ export function TripDetailsView({
   bcp47,
   companions,
   isOwner,
+  currentUserId = null,
 }: {
   trip: Trip;
   expenses: ExpenseWithCategory[];
@@ -27,9 +29,11 @@ export function TripDetailsView({
   bcp47: string;
   companions: Companion[];
   isOwner: boolean;
+  currentUserId?: string | null;
 }) {
   const base = `/trip/${trip.id}`;
   const cover = coverFromTrip(trip);
+  const payerNames = payerNameMap(companions);
   const spent = expenses.reduce((total, expense) => total + expense.converted_amount, 0);
   const recent = [...expenses]
     .sort((a, b) => b.expense_date.localeCompare(a.expense_date))
@@ -146,6 +150,7 @@ export function TripDetailsView({
                   baseCurrency={trip.base_currency}
                   dict={dict}
                   bcp47={bcp47}
+                  payer={payerLabel(expense.paid_by, currentUserId, payerNames, dict.expenses)}
                 />
               ))}
             </div>

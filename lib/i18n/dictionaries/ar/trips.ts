@@ -69,6 +69,8 @@ export const arTrips: Pick<
     savedToast: "تمت إضافة المصروف",
     today: "اليوم",
     yesterday: "أمس",
+    paidByName: "دفعها {name}",
+    paidByYou: "دفعتها أنت",
   },
   expenseForm: {
     exchangeRateLabel: "سعر الصرف (1 {currency} = ? {base})",

@@ -13,12 +13,16 @@ import type { ExpenseWithCategory } from "@/types/expense";
 import type { Category } from "@/types/category";
 import { ExpenseFilters } from "./expense-filters";
 import { ExpenseRow } from "./expense-row";
+import { payerLabel } from "./payer-label";
 
 type ExpenseListProps = {
   tripId: string;
   expenses: ExpenseWithCategory[];
   categories: Category[];
   baseCurrency: string;
+  /** userId → display name (see payer-label.ts); without it rows show no payer. */
+  payerNames?: Record<string, string>;
+  currentUserId?: string | null;
 };
 
 export function ExpenseList({
@@ -26,6 +30,8 @@ export function ExpenseList({
   expenses,
   categories,
   baseCurrency,
+  payerNames,
+  currentUserId = null,
 }: ExpenseListProps) {
   const dict = useDictionary();
   const { bcp47 } = useLocale();
@@ -88,6 +94,10 @@ export function ExpenseList({
                   baseCurrency={baseCurrency}
                   bcp47={bcp47}
                   dict={dict}
+                  payer={
+                    payerNames &&
+                    payerLabel(expense.paid_by, currentUserId, payerNames, dict.expenses)
+                  }
                 />
               ))}
             </div>

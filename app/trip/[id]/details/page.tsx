@@ -29,6 +29,7 @@ export default async function TripDetails({
       bcp47={LOCALE_BCP47[locale]}
       companions={companionResult.companions}
       isOwner={companionResult.isOwner}
+      currentUserId={user.id}
     />
   );
 }

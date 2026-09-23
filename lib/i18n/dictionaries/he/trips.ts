@@ -69,6 +69,8 @@ export const heTrips: Pick<
     savedToast: "ההוצאה נוספה",
     today: "היום",
     yesterday: "אתמול",
+    paidByName: "שולם על ידי {name}",
+    paidByYou: "שולם על ידך",
   },
   expenseForm: {
     exchangeRateLabel: "שער חליפין (1 {currency} = ? {base})",

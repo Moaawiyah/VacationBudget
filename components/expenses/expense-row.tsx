@@ -11,6 +11,8 @@ type ExpenseRowProps = {
   baseCurrency: string;
   bcp47: string;
   dict: Dictionary;
+  /** "Paid by Alex" — omitted where the caller doesn't know the trip's people. */
+  payer?: string | null;
 };
 
 /** One tappable expense: icon, description, category, amount (+ converted amount). */
@@ -20,6 +22,7 @@ export function ExpenseRow({
   baseCurrency,
   bcp47,
   dict,
+  payer,
 }: ExpenseRowProps) {
   return (
     <Link
@@ -39,6 +42,7 @@ export function ExpenseRow({
         <p className="text-muted-foreground truncate text-xs">
           {translateCategoryName(expense.category.name, dict)}
         </p>
+        {payer && <p className="text-muted-foreground/70 truncate text-[11px]">{payer}</p>}
       </div>
       <div className="shrink-0 text-end">
         <p className="text-card-foreground text-sm font-semibold">

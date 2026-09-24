@@ -1,0 +1,18 @@
+# The Dockerfile only COPYs pyproject.toml, uv.lock and app/, but Docker still
+# uploads the whole build context first — keep the local venv (~900 MB),
+# secrets and tool caches out of it.
+.venv
+.env*
+!.env.example
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov
+tests
+eval
+.DS_Store
+Dockerfile*
+.dockerignore
+README.md

@@ -172,8 +172,8 @@ Build:
 
 ```bash
 docker build \
-  --build-arg NEXT_PUBLIC_SUPABASE_URL=$(grep -oP '(?<=^NEXT_PUBLIC_SUPABASE_URL=).*' .env.local) \
-  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=$(grep -oP '(?<=^NEXT_PUBLIC_SUPABASE_ANON_KEY=).*' .env.local) \
+  --build-arg NEXT_PUBLIC_SUPABASE_URL=$(sed -n 's/^NEXT_PUBLIC_SUPABASE_URL=//p' .env.local) \
+  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=$(sed -n 's/^NEXT_PUBLIC_SUPABASE_ANON_KEY=//p' .env.local) \
   --build-arg NEXT_PUBLIC_SITE_URL=http://localhost:3000 \
   -t vacation-budget .
 ```
@@ -186,13 +186,20 @@ docker run --env-file .env.local -p 3000:3000 vacation-budget
 
 Open `http://localhost:3000`.
 
-Or with Compose, which reads the same build args from `.env.local` for you
-(Compose only auto-loads a file literally named `.env`, so pass `--env-file`
-explicitly):
+Or with Compose, which also runs the receipt service and reads the same build
+args from `.env.local` for you (Compose only auto-loads a file literally named
+`.env`, so pass `--env-file` explicitly). Compose also needs
+`receipt-service/.env` — copy it from `receipt-service/.env.example`, fill in
+`GROQ_API_KEY`, and set `SERVICE_AUTH_TOKEN` to the same value as
+`RECEIPT_SERVICE_TOKEN` in `.env.local`:
 
 ```bash
+cp receipt-service/.env.example receipt-service/.env   # then fill it in
 docker compose --env-file .env.local up --build
 ```
+
+The web app waits until the receipt service's `/health` check passes before
+it starts.
 
 - `npm run dev` — normal local development, hot reload, no container.
 - **Docker** — a reproducible, production-like build/run of the app locally.

@@ -18,12 +18,23 @@ services:
       # doesn't resolve between containers) with compose's own DNS name.
       RECEIPT_SERVICE_URL: http://receipt-service:8000
     depends_on:
-      - receipt-service
+      receipt-service:
+        condition: service_healthy
     restart: unless-stopped
 
   receipt-service:
+    # paddlepaddle ships no linux/arm64 wheels, so on Apple Silicon this must
+    # build and run as amd64 under emulation (Railway is amd64 natively).
+    platform: linux/amd64
     build:
       context: ./receipt-service
     env_file:
       - receipt-service/.env
+    # python:3.12-slim ships no curl/wget, so probe /health with the stdlib.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
